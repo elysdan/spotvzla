@@ -255,7 +255,7 @@
     }
 
     .menu-toggle {
-      display: none !important;
+      display: none;
     }
 
     /* Mobile Drawer Navigation */
@@ -427,10 +427,7 @@
       background: var(--surface)
     }
 
-    #menu-toggle,
-    .menu-toggle {
-      display: none !important;
-    }
+
 
     .icon-btn:hover {
       border-color: var(--muted)
@@ -1815,7 +1812,8 @@
         display: none !important;
       }
 
-      .menu-toggle {
+      .menu-toggle,
+      #menu-toggle {
         display: inline-flex !important;
       }
 
