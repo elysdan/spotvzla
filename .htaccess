@@ -1,0 +1,19 @@
+# Seguridad y configuración para Apache (DonWeb y XAMPP)
+
+# Desactivar listado de directorios
+Options -Indexes
+
+# Proteger archivos sensibles de base de datos y migraciones
+<FilesMatch "\.(sql|log|env|ini)$">
+    Require all denied
+</FilesMatch>
+
+# Charset por defecto UTF-8
+AddDefaultCharset UTF-8
+
+# Cabeceras de seguridad básicas
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>

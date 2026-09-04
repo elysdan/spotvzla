@@ -1969,8 +1969,10 @@
             <use href="#i-luna"></use>
           </svg>
         </button>
-        <button class="btn btn-ghost btn-sm hdr-act-desktop" data-modal="login">Iniciar sesión</button>
-        <button class="btn btn-primary btn-sm hdr-act-desktop" data-go="negocio">Registra tu comercio</button>
+        <div id="hdr-auth-desktop" style="display:flex; align-items:center; gap:.5rem;">
+          <button class="btn btn-ghost btn-sm hdr-act-desktop" data-modal="login">Iniciar sesión</button>
+          <button class="btn btn-primary btn-sm hdr-act-desktop" data-go="negocio">Registra tu comercio</button>
+        </div>
         <button class="icon-btn menu-toggle" id="menu-toggle" title="Abrir menú" aria-label="Abrir menú de navegación">
           <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M4 6h16M4 12h16M4 18h16" />
@@ -2033,7 +2035,7 @@
           Panel admin
         </a>
       </nav>
-      <div class="mobile-drawer-foot">
+      <div class="mobile-drawer-foot" id="mobile-drawer-auth">
         <button class="btn btn-primary btn-lg" style="width:100%" data-go="negocio">Registra tu comercio</button>
         <button class="btn btn-ghost btn-lg" style="width:100%" data-modal="login">Iniciar sesión</button>
       </div>
@@ -2483,32 +2485,105 @@
   <!-- ============ PANEL ADMIN ============ -->
   <main id="v-admin" class="view">
     <div class="wrap" style="padding:2.6rem 0 4rem">
-      <div class="demo-note"><svg>
-          <use href="#i-info"></use>
-        </svg> Vista del equipo de Spot: aquí se aprueban las fichas antes de que aparezcan en el mapa.</div>
-      <span class="eyebrow">Moderación</span>
-      <h2 style="margin:.6rem 0 1.6rem">Comercios por revisar</h2>
-      <div class="stats">
-        <div class="stat"><span class="eyebrow">Pendientes</span><b>14</b></div>
-        <div class="stat"><span class="eyebrow">Aprobados hoy</span><b>27</b></div>
-        <div class="stat"><span class="eyebrow">Activos</span><b>1.284</b></div>
-        <div class="stat"><span class="eyebrow">Reportes abiertos</span><b>3</b></div>
+      <!-- Vista para no autenticados o usuarios sin rol admin -->
+      <div id="admin-guest-box" class="panel" style="padding:2.8rem 2rem; text-align:center; max-width:580px; margin:2rem auto;">
+        <div style="width:54px; height:54px; border-radius:50%; background:var(--brand-soft); color:var(--brand-ink); display:grid; place-items:center; margin:0 auto 1.2rem;">
+          <svg class="ico" style="width:28px; height:28px;"><use href="#i-info"></use></svg>
+        </div>
+        <h3 style="margin-bottom:.6rem;">Acceso Administrativo Requerido</h3>
+        <p style="color:var(--muted); font-size:.95rem; margin-bottom:1.5rem;">
+          Para gestionar las empresas y los usuarios del sistema, debes identificarte con tu cuenta de administrador.
+        </p>
+        <button class="btn btn-primary btn-lg" data-modal="login">Iniciar sesión como Administrador</button>
       </div>
-      <div class="tbl-wrap">
-        <table class="tbl">
-          <thead>
-            <tr>
-              <th>Comercio</th>
-              <th>Categoría</th>
-              <th>Zona</th>
-              <th>Pagos</th>
-              <th>Enviado</th>
-              <th>Estado</th>
-              <th style="text-align:right">Acción</th>
-            </tr>
-          </thead>
-          <tbody id="admin-rows"></tbody>
-        </table>
+
+      <!-- Vista activa para Administrador -->
+      <div id="admin-panel-content" hidden>
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:1rem; margin-bottom:1.8rem;">
+          <div>
+            <span class="eyebrow">Panel de Control</span>
+            <h2 style="margin-top:.4rem;">Administración de Spot</h2>
+          </div>
+          <div id="admin-user-tag" class="tag tag-ok" style="padding:.4rem .9rem; font-size:.85rem;">
+            Admin conectado
+          </div>
+        </div>
+
+        <div class="stats" style="margin-bottom:2rem;">
+          <div class="stat"><span class="eyebrow">Por Revisar</span><b id="stat-pendientes">0</b></div>
+          <div class="stat"><span class="eyebrow">Aprobados</span><b id="stat-aprobados">0</b></div>
+          <div class="stat"><span class="eyebrow">Total Comercios</span><b id="stat-total-comercios">0</b></div>
+          <div class="stat"><span class="eyebrow">Total Usuarios</span><b id="stat-total-usuarios">0</b></div>
+        </div>
+
+        <div class="tabs" style="max-width:340px; margin-bottom:1.8rem;">
+          <button class="on" id="admin-tab-btn-comercios">Comercios</button>
+          <button id="admin-tab-btn-usuarios">Usuarios</button>
+        </div>
+
+        <!-- SECCIÓN 1: GESTIÓN DE COMERCIOS -->
+        <section id="admin-section-comercios">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.2rem;">
+            <div style="display:flex; gap:.4rem; align-items:center;">
+              <span class="chip on" data-admin-filter="all">Todos</span>
+              <span class="chip" data-admin-filter="pendiente">Pendientes</span>
+              <span class="chip" data-admin-filter="aprobado">Aprobados</span>
+              <span class="chip" data-admin-filter="rechazado">Rechazados</span>
+            </div>
+            <button class="btn btn-primary btn-sm" data-go="negocio">
+              + Registrar Comercio
+            </button>
+          </div>
+
+          <div class="tbl-wrap">
+            <table class="tbl">
+              <thead>
+                <tr>
+                  <th>Comercio</th>
+                  <th>Categoría</th>
+                  <th>Dueño / Contacto</th>
+                  <th>Zona</th>
+                  <th>Pagos</th>
+                  <th>Estado</th>
+                  <th style="text-align:right">Acción</th>
+                </tr>
+              </thead>
+              <tbody id="admin-comercios-rows">
+                <tr><td colspan="7" style="text-align:center; padding:2rem; color:var(--muted)">Cargando comercios...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- SECCIÓN 2: GESTIÓN DE USUARIOS -->
+        <section id="admin-section-usuarios" hidden>
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.2rem;">
+            <p style="color:var(--muted); font-size:.9rem; margin:0;">Usuarios registrados con acceso al sistema.</p>
+            <button class="btn btn-primary btn-sm" id="btn-open-create-user">
+              + Crear Nuevo Usuario
+            </button>
+          </div>
+
+          <div class="tbl-wrap">
+            <table class="tbl">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nombre</th>
+                  <th>Correo Electrónico</th>
+                  <th>Teléfono</th>
+                  <th>Rol</th>
+                  <th>Estado</th>
+                  <th>Empresas</th>
+                  <th>Fecha</th>
+                </tr>
+              </thead>
+              <tbody id="admin-usuarios-rows">
+                <tr><td colspan="8" style="text-align:center; padding:2rem; color:var(--muted)">Cargando usuarios...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
       </div>
     </div>
   </main>
@@ -2556,6 +2631,7 @@
   </footer>
 
   <!-- ============ MODAL ============ -->
+  <!-- ============ MODAL INICIO DE SESIÓN ============ -->
   <div class="overlay" id="ov">
     <div class="modal" role="dialog" aria-modal="true" aria-label="Acceder a Spot">
       <div style="display:flex; justify-content:space-between; align-items:center">
@@ -2567,26 +2643,96 @@
             <use href="#i-x"></use>
           </svg></button>
       </div>
-      <div class="tabs"><button class="on" data-tab="in">Iniciar sesión</button><button data-tab="up">Crear
-          cuenta</button></div>
+      <div class="tabs">
+        <button class="on" data-tab="in">Iniciar sesión</button>
+        <button data-tab="up">Crear cuenta</button>
+      </div>
+
       <div id="tab-up" hidden>
-        <div class="f"><label for="m-nom">Nombre</label><input type="text" id="m-nom" placeholder="Tu nombre"></div>
+        <div class="demo-note" style="margin-bottom:1.2rem; font-size:.85rem;">
+          <svg class="ico"><use href="#i-info"></use></svg>
+          Actualmente el registro de comercios y usuarios es gestionado por el Administrador. Si necesitas una cuenta, contáctanos.
+        </div>
       </div>
-      <div class="f"><label for="m-mail">Correo electrónico</label><input type="email" id="m-mail"
-          placeholder="tucorreo@ejemplo.com"></div>
-      <div class="f"><label for="m-pass">Contraseña</label><input type="password" id="m-pass" placeholder="••••••••">
-      </div>
-      <button class="btn btn-primary" style="width:100%" data-toast="Sesión iniciada (demostración)">Entrar</button>
-      <p style="text-align:center; margin-top:.9rem; font-size:.87rem"><a href="#inicio"
-          style="color:var(--brand-ink); font-weight:600">Olvidé mi contraseña</a></p>
+
+      <form id="form-login" onsubmit="return false;">
+        <div id="login-error-msg" style="display:none; color:var(--hot); background:color-mix(in srgb, var(--hot) 12%, transparent); padding:.6rem .8rem; border-radius:8px; font-size:.85rem; margin-bottom:1rem;"></div>
+        
+        <div class="f">
+          <label for="m-mail">Correo electrónico</label>
+          <input type="email" id="m-mail" placeholder="admin@spotvzla.com" required autocomplete="username">
+        </div>
+        <div class="f">
+          <label for="m-pass">Contraseña</label>
+          <input type="password" id="m-pass" placeholder="••••••••" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn btn-primary" id="btn-login-submit" style="width:100%">
+          Iniciar Sesión
+        </button>
+      </form>
+
+      <p style="text-align:center; margin-top:.9rem; font-size:.85rem; color:var(--muted)">
+        Admin por defecto: <code class="mono" style="color:var(--brand-ink)">admin@spotvzla.com</code> / <code class="mono" style="color:var(--brand-ink)">Admin123*</code>
+      </p>
+
       <div class="divider">o continúa con</div>
       <div class="oauth">
-        <button class="btn btn-ghost" data-toast="Conectando con Google…">Google</button>
-        <!--  <button class="btn btn-ghost" data-toast="Conectando con Facebook…">Facebook</button> -->
+        <button class="btn btn-ghost" data-toast="OAuth disponible en la versión final">Google</button>
       </div>
       <p style="text-align:center; margin-top:1.2rem; font-size:.85rem; color:var(--muted)">¿Tienes un comercio? <a
           href="#negocio" data-go="negocio" data-close style="color:var(--brand-ink); font-weight:600">Regístralo
           aquí</a></p>
+    </div>
+  </div>
+
+  <!-- ============ MODAL CREAR USUARIO (ADMIN) ============ -->
+  <div class="overlay" id="modal-user">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Crear Nuevo Usuario">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem;">
+        <h3 style="margin:0;">Crear Nuevo Usuario</h3>
+        <button class="icon-btn" id="btn-close-modal-user" aria-label="Cerrar"><svg class="ico">
+            <use href="#i-x"></use>
+          </svg></button>
+      </div>
+      
+      <form id="form-create-user" onsubmit="return false;">
+        <div id="user-create-error" style="display:none; color:var(--hot); background:color-mix(in srgb, var(--hot) 12%, transparent); padding:.6rem .8rem; border-radius:8px; font-size:.85rem; margin-bottom:1rem;"></div>
+
+        <div class="f">
+          <label for="u-nom">Nombre Completo</label>
+          <input type="text" id="u-nom" placeholder="Ej. Alejandro Pérez" required>
+        </div>
+
+        <div class="f">
+          <label for="u-mail">Correo Electrónico</label>
+          <input type="email" id="u-mail" placeholder="ejemplo@spotvzla.com" required>
+        </div>
+
+        <div class="f-row">
+          <div class="f">
+            <label for="u-tel">Teléfono</label>
+            <input type="tel" id="u-tel" placeholder="0412 1234567">
+          </div>
+          <div class="f">
+            <label for="u-rol">Rol del Usuario</label>
+            <select id="u-rol">
+              <option value="empresa" selected>Dueño de Comercio</option>
+              <option value="usuario">Usuario Regular</option>
+              <option value="admin">Administrador</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="f">
+          <label for="u-pass">Contraseña Inicial</label>
+          <input type="password" id="u-pass" placeholder="Mínimo 6 caracteres" minlength="6" required>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:.6rem; margin-top:1.5rem;">
+          <button type="button" class="btn btn-ghost" id="btn-cancel-create-user">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btn-submit-create-user">Guardar Usuario</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -2709,14 +2855,6 @@
     $('#all-cards').innerHTML = BIZ.map(cardHTML).join('');
     $('#all-count').textContent = BIZ.length + ' comercios';
     $('#f-cats').innerHTML = `<span class="chip on" data-c="all">Todas</span>` + CATS.map(c => `<span class="chip" data-c="${c.k}">${c.n}</span>`).join('');
-    $('#admin-rows').innerHTML = PEND.map(p => `<tr>
-  <td><b>${p.n}</b></td><td>${p.cat}</td><td>${p.z}</td>
-  <td><div class="pay-row">${p.pays.map(k => payChip(k, 1)).join('')}</div></td>
-  <td class="mono" style="color:var(--muted)">${p.t}</td>
-  <td>${p.st === 'wait' ? '<span class="tag tag-wait">Por revisar</span>' : p.st === 'ok' ? '<span class="tag tag-ok">Aprobado</span>' : '<span class="tag tag-no">Rechazado</span>'}</td>
-  <td style="text-align:right; white-space:nowrap">
-    <button class="btn btn-ghost btn-sm" data-toast="Ficha rechazada. Se notificó al comercio.">Rechazar</button>
-    <button class="btn btn-primary btn-sm" data-toast="Comercio aprobado y publicado en el mapa.">Aprobar</button></td></tr>`).join('');
 
     $$('.cat').forEach(el => el.addEventListener('click', () => {
       state.cat = el.dataset.cat; $$('#f-cats .chip').forEach(c => c.classList.toggle('on', c.dataset.c === state.cat));
@@ -2869,11 +3007,416 @@
     }));
     $$('#n-pays .pay-toggle').forEach(p => p.addEventListener('click', () => p.classList.toggle('on')));
     $('#drop').addEventListener('click', () => toast('En la versión final abre el selector de archivos'));
-    $('#send-biz').addEventListener('click', () => { toast('Ficha enviada. Te escribimos al aprobarla, normalmente en menos de 48 h.'); go('admin') });
-    $$('#quick-chips .chip').forEach(c => c.addEventListener('click', () => c.classList.toggle('on')));
+    /* ===================== INTEGRACIÓN CON BACKEND (PHP + MYSQL) ===================== */
+    let currentAuthUser = null;
+    let adminComerciosList = [];
+    let adminUsuariosList = [];
+    let currentAdminFilter = 'all';
+
+    // 1. Verificación de sesión al iniciar
+    async function checkAuthSession() {
+      try {
+        const res = await fetch('api/auth/me.php');
+        const json = await res.json();
+        if (json.success && json.data && json.data.authenticated) {
+          currentAuthUser = json.data.user;
+        } else {
+          currentAuthUser = null;
+        }
+      } catch (e) {
+        currentAuthUser = null;
+      }
+      renderAuthUI();
+    }
+
+    // 2. Renderizado de interfaz según estado de autenticación
+    function renderAuthUI() {
+      const desktopSlot = $('#hdr-auth-desktop');
+      const mobileSlot = $('#mobile-drawer-auth');
+      const adminGuest = $('#admin-guest-box');
+      const adminContent = $('#admin-panel-content');
+
+      if (currentAuthUser) {
+        const roleName = currentAuthUser.rol === 'admin' ? 'Admin' : (currentAuthUser.rol === 'empresa' ? 'Comercio' : 'Usuario');
+        if (desktopSlot) {
+          desktopSlot.innerHTML = `
+            <span class="tag tag-ok" style="font-size:.82rem; padding:.32rem .75rem; white-space:nowrap;">
+              ${roleName}: <b>${currentAuthUser.nombre.split(' ')[0]}</b>
+            </span>
+            ${currentAuthUser.rol === 'admin' ? '<button class="btn btn-primary btn-sm hdr-act-desktop" data-go="admin">Panel Admin</button>' : ''}
+            <button class="btn btn-ghost btn-sm" id="btn-logout" title="Cerrar sesión">Salir</button>
+          `;
+        }
+        if (mobileSlot) {
+          mobileSlot.innerHTML = `
+            <span class="tag tag-ok" style="margin-bottom:.6rem; justify-content:center; width:100%;">
+              ${roleName}: <b>${currentAuthUser.nombre}</b>
+            </span>
+            ${currentAuthUser.rol === 'admin' ? '<button class="btn btn-primary btn-lg" style="width:100%; margin-bottom:.5rem;" data-go="admin">Panel Admin</button>' : ''}
+            <button class="btn btn-ghost btn-lg" style="width:100%" id="btn-logout-mobile">Cerrar sesión</button>
+          `;
+        }
+        if (adminGuest && adminContent) {
+          if (currentAuthUser.rol === 'admin') {
+            adminGuest.hidden = true;
+            adminContent.hidden = false;
+            $('#admin-user-tag').textContent = `${currentAuthUser.nombre} (Admin)`;
+            loadAdminData();
+          } else {
+            adminGuest.hidden = false;
+            adminContent.hidden = true;
+            adminGuest.querySelector('p').textContent = 'Tu cuenta no tiene permisos de administrador.';
+          }
+        }
+      } else {
+        if (desktopSlot) {
+          desktopSlot.innerHTML = `
+            <button class="btn btn-ghost btn-sm hdr-act-desktop" data-modal="login">Iniciar sesión</button>
+            <button class="btn btn-primary btn-sm hdr-act-desktop" data-go="negocio">Registra tu comercio</button>
+          `;
+        }
+        if (mobileSlot) {
+          mobileSlot.innerHTML = `
+            <button class="btn btn-primary btn-lg" style="width:100%" data-go="negocio">Registra tu comercio</button>
+            <button class="btn btn-ghost btn-lg" style="width:100%" data-modal="login">Iniciar sesión</button>
+          `;
+        }
+        if (adminGuest && adminContent) {
+          adminGuest.hidden = false;
+          adminContent.hidden = true;
+        }
+      }
+    }
+
+    // 3. Formulario de Inicio de Sesión
+    $('#form-login')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = $('#m-mail').value.trim();
+      const password = $('#m-pass').value;
+      const errMsg = $('#login-error-msg');
+      const submitBtn = $('#btn-login-submit');
+
+      errMsg.style.display = 'none';
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Comprobando…';
+
+      try {
+        const res = await fetch('api/auth/login.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const json = await res.json();
+        if (json.success) {
+          toast('¡Bienvenido, ' + json.data.user.nombre + '!');
+          $('#ov').classList.remove('on');
+          $('#form-login').reset();
+          currentAuthUser = json.data.user;
+          renderAuthUI();
+          if (currentAuthUser.rol === 'admin') {
+            go('admin');
+          }
+        } else {
+          errMsg.textContent = json.message || 'Error al iniciar sesión';
+          errMsg.style.display = 'block';
+        }
+      } catch (err) {
+        errMsg.textContent = 'No fue posible conectar con el servidor.';
+        errMsg.style.display = 'block';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Iniciar Sesión';
+      }
+    });
+
+    // 4. Cierre de sesión
+    document.addEventListener('click', async (e) => {
+      if (e.target.id === 'btn-logout' || e.target.id === 'btn-logout-mobile') {
+        try {
+          await fetch('api/auth/logout.php', { method: 'POST' });
+          currentAuthUser = null;
+          renderAuthUI();
+          toast('Sesión finalizada.');
+          go('inicio');
+        } catch (err) {
+          toast('Error al cerrar sesión');
+        }
+      }
+    });
+
+    // 5. Carga de datos del panel de administración
+    async function loadAdminData() {
+      try {
+        const res = await fetch('api/admin/empresas/list.php');
+        const json = await res.json();
+        if (json.success && json.data) {
+          adminComerciosList = json.data.empresas || [];
+          const st = json.data.stats || {};
+          $('#stat-pendientes').textContent = st.pendientes || 0;
+          $('#stat-aprobados').textContent = st.aprobados || 0;
+          $('#stat-total-comercios').textContent = st.total || 0;
+          renderAdminComercios();
+        }
+      } catch (err) {
+        console.error('Error al cargar comercios en admin:', err);
+      }
+      loadAdminUsersCount();
+    }
+
+    async function loadAdminUsersCount() {
+      try {
+        const res = await fetch('api/admin/usuarios/list.php');
+        const json = await res.json();
+        if (json.success && json.data) {
+          adminUsuariosList = json.data.usuarios || [];
+          $('#stat-total-usuarios').textContent = json.data.total || 0;
+          renderAdminUsuarios();
+        }
+      } catch (err) {
+        console.error('Error al cargar usuarios:', err);
+      }
+    }
+
+    function renderAdminComercios() {
+      const tbody = $('#admin-comercios-rows');
+      if (!tbody) return;
+
+      const filtered = adminComerciosList.filter(e => {
+        if (currentAdminFilter === 'all') return true;
+        return e.estado === currentAdminFilter;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:2rem; color:var(--muted)">No hay comercios en este estado.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(b => {
+        const stBadge = b.estado === 'pendiente' 
+          ? '<span class="tag tag-wait">Por revisar</span>'
+          : (b.estado === 'aprobado' ? '<span class="tag tag-ok">Aprobado</span>' : '<span class="tag tag-no">Rechazado</span>');
+
+        const payChips = (b.metodos_pago || []).map(p => payChip(p, 1)).join('') || '—';
+
+        let actionBtns = '';
+        if (b.estado !== 'aprobado') {
+          actionBtns += `<button class="btn btn-primary btn-sm" onclick="setBusinessStatus(${b.id}, 'aprobado')" style="margin-left:.3rem;">Aprobar</button>`;
+        }
+        if (b.estado !== 'rechazado') {
+          actionBtns += `<button class="btn btn-ghost btn-sm" onclick="setBusinessStatus(${b.id}, 'rechazado')" style="margin-left:.3rem;">Rechazar</button>`;
+        }
+
+        return `
+          <tr>
+            <td><b>${b.nombre}</b>${b.rif ? `<br><small style="color:var(--muted)">${b.rif}</small>` : ''}</td>
+            <td>${b.categoria_nombre || b.categoria_slug}</td>
+            <td><small><b>${b.dueno_nombre}</b><br>${b.dueno_email || '—'}</small></td>
+            <td>${b.zona}</td>
+            <td><div class="pay-row">${payChips}</div></td>
+            <td>${stBadge}</td>
+            <td style="text-align:right; white-space:nowrap;">${actionBtns}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    window.setBusinessStatus = async function(id, newStatus) {
+      try {
+        const res = await fetch('api/admin/empresas/update_status.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, estado: newStatus })
+        });
+        const json = await res.json();
+        if (json.success) {
+          toast(`Comercio marcado como ${newStatus}.`);
+          loadAdminData();
+          loadBusinessesFromAPI();
+        } else {
+          toast(json.message || 'Error al actualizar estado.');
+        }
+      } catch (err) {
+        toast('Error de conexión al actualizar estado.');
+      }
+    };
+
+    function renderAdminUsuarios() {
+      const tbody = $('#admin-usuarios-rows');
+      if (!tbody) return;
+
+      if (adminUsuariosList.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:2rem; color:var(--muted)">No hay usuarios registrados.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = adminUsuariosList.map(u => {
+        const rolBadge = u.rol === 'admin' 
+          ? '<span class="tag tag-ok">Admin</span>' 
+          : (u.rol === 'empresa' ? '<span class="tag tag-wait">Comercio</span>' : '<span class="tag">Usuario</span>');
+        
+        const dateStr = u.created_at ? u.created_at.slice(0, 10) : '—';
+
+        return `
+          <tr>
+            <td class="mono">#${u.id}</td>
+            <td><b>${u.nombre}</b></td>
+            <td>${u.email}</td>
+            <td>${u.telefono || '—'}</td>
+            <td>${rolBadge}</td>
+            <td><span class="tag ${u.estado === 'activo' ? 'tag-ok' : 'tag-no'}">${u.estado}</span></td>
+            <td class="mono">${u.total_empresas || 0}</td>
+            <td class="mono" style="color:var(--muted)">${dateStr}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // 6. Navegación de pestañas Admin
+    $('#admin-tab-btn-comercios')?.addEventListener('click', () => {
+      $('#admin-tab-btn-comercios').classList.add('on');
+      $('#admin-tab-btn-usuarios').classList.remove('on');
+      $('#admin-section-comercios').hidden = false;
+      $('#admin-section-usuarios').hidden = true;
+    });
+
+    $('#admin-tab-btn-usuarios')?.addEventListener('click', () => {
+      $('#admin-tab-btn-usuarios').classList.add('on');
+      $('#admin-tab-btn-comercios').classList.remove('on');
+      $('#admin-section-usuarios').hidden = false;
+      $('#admin-section-comercios').hidden = true;
+      loadAdminUsersCount();
+    });
+
+    $$('[data-admin-filter]').forEach(chip => chip.addEventListener('click', () => {
+      $$('[data-admin-filter]').forEach(c => c.classList.toggle('on', c === chip));
+      currentAdminFilter = chip.dataset.adminFilter;
+      renderAdminComercios();
+    }));
+
+    // 7. Modal de Creación de Usuarios (Admin)
+    $('#btn-open-create-user')?.addEventListener('click', () => {
+      $('#user-create-error').style.display = 'none';
+      $('#form-create-user').reset();
+      $('#modal-user').classList.add('on');
+    });
+
+    const closeModalUser = () => $('#modal-user').classList.remove('on');
+    $('#btn-close-modal-user')?.addEventListener('click', closeModalUser);
+    $('#btn-cancel-create-user')?.addEventListener('click', closeModalUser);
+
+    $('#form-create-user')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const nombre = $('#u-nom').value.trim();
+      const email = $('#u-mail').value.trim();
+      const telefono = $('#u-tel').value.trim();
+      const rol = $('#u-rol').value;
+      const password = $('#u-pass').value;
+      const errMsg = $('#user-create-error');
+      const submitBtn = $('#btn-submit-create-user');
+
+      errMsg.style.display = 'none';
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Guardando…';
+
+      try {
+        const res = await fetch('api/admin/usuarios/create.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nombre, email, telefono, rol, password })
+        });
+        const json = await res.json();
+        if (json.success) {
+          toast('Usuario creado exitosamente.');
+          closeModalUser();
+          loadAdminUsersCount();
+        } else {
+          errMsg.textContent = json.message || 'Error al crear usuario.';
+          errMsg.style.display = 'block';
+        }
+      } catch (err) {
+        errMsg.textContent = 'Error de conexión con el servidor.';
+        errMsg.style.display = 'block';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Guardar Usuario';
+      }
+    });
+
+    // 8. Registro de Comercio conectando al Backend MySQL
+    $('#send-biz')?.addEventListener('click', async () => {
+      const name = $('#n-name').value.trim();
+      if (!name) {
+        toast('Indica el nombre del comercio en el paso 1.');
+        return;
+      }
+
+      const catSelect = $('#n-cat').value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const catIdMap = {
+        'restaurante': 1, 'cafe': 2, 'panaderia': 3, 'supermercado': 4,
+        'hotel': 5, 'tienda': 6, 'entretenimiento': 7, 'servicios': 8, 'tecnologia': 9
+      };
+      const catId = catIdMap[catSelect] || 1;
+      const pays = $$('#n-pays .pay-toggle.on').map(p => p.dataset.p);
+
+      const payload = {
+        usuario_id: currentAuthUser ? currentAuthUser.id : 1,
+        nombre: name,
+        rif: $('#n-rif').value.trim(),
+        categoria_id: catId,
+        descripcion: $('#n-desc').value.trim(),
+        telefono: $('#n-tel').value.trim(),
+        correo_contacto: $('#n-mail').value.trim(),
+        direccion: $('#n-dir').value.trim() || 'Dirección en Caracas',
+        zona: $('#n-zona').value || 'Chacao',
+        latitud: (typeof pickMarker !== 'undefined' && pickMarker) ? pickMarker.getLatLng().lat : 10.4975,
+        longitud: (typeof pickMarker !== 'undefined' && pickMarker) ? pickMarker.getLatLng().lng : -66.8542,
+        estado: (currentAuthUser && currentAuthUser.rol === 'admin') ? 'aprobado' : 'pendiente',
+        metodos_pago: pays
+      };
+
+      try {
+        const res = await fetch('api/admin/empresas/create.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const json = await res.json();
+        if (json.success) {
+          toast('¡Comercio registrado con éxito!');
+          await loadBusinessesFromAPI();
+          go('admin');
+          if (currentAuthUser && currentAuthUser.rol === 'admin') loadAdminData();
+        } else {
+          toast(json.message || 'Error al registrar el comercio');
+        }
+      } catch (err) {
+        toast('Error de conexión al registrar el comercio.');
+      }
+    });
+
+    // 9. Carga de Comercios Aprobados desde MySQL para Mapa y Directorio
+    async function loadBusinessesFromAPI() {
+      try {
+        const res = await fetch('api/empresas/list.php');
+        const json = await res.json();
+        if (json.success && json.data && json.data.comercios && json.data.comercios.length > 0) {
+          BIZ.length = 0;
+          json.data.comercios.forEach(c => BIZ.push(c));
+          $('#home-cards').innerHTML = BIZ.slice(0, 6).map(cardHTML).join('');
+          $('#all-cards').innerHTML = BIZ.map(cardHTML).join('');
+          $('#all-count').textContent = BIZ.length + ' comercios';
+          $('#b-count').textContent = BIZ.length;
+          refresh();
+        }
+      } catch (err) {
+        console.warn('Cargando con comercios estáticos de respaldo:', err);
+      }
+    }
 
     /* ===================== arranque ===================== */
     initMaps();
+    checkAuthSession();
+    loadBusinessesFromAPI();
     go(location.hash.slice(1) || 'inicio');
   </script>
 </body>
