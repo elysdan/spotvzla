@@ -26,6 +26,7 @@ $direccion   = clean($input['direccion'] ?? '');
 $zona        = clean($input['zona'] ?? '');
 $latitud     = !empty($input['latitud']) ? (float)$input['latitud'] : null;
 $longitud    = !empty($input['longitud']) ? (float)$input['longitud'] : null;
+$logoUrl     = clean($input['logo_url'] ?? '');
 $estado      = clean($input['estado'] ?? 'aprobado');
 $metodosPago = is_array($input['metodos_pago'] ?? null) ? $input['metodos_pago'] : [];
 
@@ -71,11 +72,11 @@ try {
     $sql = "INSERT INTO empresas (
                 usuario_id, nombre, rif, categoria_id, descripcion,
                 telefono, correo_contacto, direccion, zona,
-                latitud, longitud, estado, verificado
+                latitud, longitud, logo_url, estado, verificado
             ) VALUES (
                 :uid, :nombre, :rif, :cid, :desc,
                 :tel, :correo, :dir, :zona,
-                :lat, :lng, :estado, 1
+                :lat, :lng, :logo, :estado, 1
             )";
 
     $stmt = $pdo->prepare($sql);
@@ -91,6 +92,7 @@ try {
         ':zona'   => $zona,
         ':lat'    => $latitud,
         ':lng'    => $longitud,
+        ':logo'   => $logoUrl ?: null,
         ':estado' => $estado
     ]);
 

@@ -2448,13 +2448,21 @@
           <p class="hint">Puedes cambiarlos cuando quieras desde tu panel.</p>
         </div>
         <div class="f"><label>Logo o foto de portada</label>
-          <div class="drop" id="drop">
-            <svg class="ico" style="width:26px;height:26px;margin:0 auto .5rem">
-              <use href="#i-subir"></use>
-            </svg>
-            <b style="display:block;color:var(--ink)">Arrastra una imagen o haz clic para elegirla</b>
-            <span style="font-size:.8rem">JPG o PNG · mínimo 1200×800 px · hasta 4 MB</span>
+          <input type="file" id="n-file" accept="image/jpeg,image/png,image/webp" style="display:none">
+          <div class="drop" id="drop" role="button" tabindex="0" aria-label="Subir logo o foto de portada">
+            <div id="drop-prompt">
+              <svg class="ico" style="width:26px;height:26px;margin:0 auto .5rem">
+                <use href="#i-subir"></use>
+              </svg>
+              <b style="display:block;color:var(--ink)">Arrastra una imagen o haz clic para elegirla</b>
+              <span style="font-size:.8rem">JPG, PNG o WebP · hasta 5 MB</span>
+            </div>
+            <div id="drop-preview" style="display:none; flex-direction:column; align-items:center; gap:.5rem;">
+              <img id="img-preview" src="" alt="Vista previa del logo" style="max-height:120px; max-width:100%; border-radius:var(--r-s); object-fit:contain; box-shadow:var(--shadow);">
+              <span style="font-size:.82rem; color:var(--brand-ink); font-weight:600;">Clic para cambiar imagen</span>
+            </div>
           </div>
+          <p id="upload-status-text" class="hint" style="display:none; color:var(--brand);"></p>
         </div>
         <div class="wz-foot"><button class="btn btn-ghost" data-next="1">Atrás</button><button class="btn btn-primary"
             data-next="3">Revisar y enviar</button></div>
@@ -2471,6 +2479,7 @@
           <div class="kv"><span>Zona</span><b id="r-zona">—</b></div>
           <div class="kv"><span>Contacto</span><b id="r-tel">—</b></div>
           <div class="kv"><span>Pagos</span><b id="r-pays" style="display:flex;gap:.25rem">—</b></div>
+          <div class="kv" id="r-logo-row" style="display:none;"><span>Foto/Logo</span><b id="r-logo-wrap">—</b></div>
         </div>
         <div class="f" style="margin-top:1.4rem"><label
             style="display:flex; gap:.6rem; align-items:flex-start; font-weight:400; font-size:.9rem">
@@ -2660,7 +2669,7 @@
         
         <div class="f">
           <label for="m-mail">Correo electrónico</label>
-          <input type="email" id="m-mail" placeholder="admin@spotvzla.com" required autocomplete="username">
+          <input type="email" id="m-mail" placeholder="tucorreo@ejemplo.com" required autocomplete="username">
         </div>
         <div class="f">
           <label for="m-pass">Contraseña</label>
@@ -2670,10 +2679,6 @@
           Iniciar Sesión
         </button>
       </form>
-
-      <p style="text-align:center; margin-top:.9rem; font-size:.85rem; color:var(--muted)">
-        Admin por defecto: <code class="mono" style="color:var(--brand-ink)">admin@spotvzla.com</code> / <code class="mono" style="color:var(--brand-ink)">Admin123*</code>
-      </p>
 
       <div class="divider">o continúa con</div>
       <div class="oauth">
@@ -2791,18 +2796,22 @@
     function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('on'), 2600) }
 
     function cardHTML(b) {
-      const c = CATMAP[b.cat]; return `
+      const c = CATMAP[b.cat] || { g: 'linear-gradient(135deg,#0F9B8E,#0A6E64)', i: 'i-tienda', n: b.cat || 'Comercio' };
+      const artContent = b.logo_url 
+        ? `<img src="${b.logo_url}" alt="${b.n}" style="width:100%; height:100%; object-fit:cover;">` 
+        : ico(c.i);
+      return `
 <article class="card" data-id="${b.id}">
-  <div class="card-art" style="background:${c.g}">
-    ${ico(c.i)}
+  <div class="card-art" style="background:${c.g}; overflow:hidden;">
+    ${artContent}
     <span class="badge ${b.open ? '' : 'closed'}"><span class="dot"></span>${b.open ? 'Abierto ahora' : 'Cerrado'}</span>
   </div>
   <div class="card-body">
-    <div class="card-top"><h3>${b.n}</h3><span class="rate">${ico('i-estrella')}${b.r.toFixed(1)}</span></div>
-    <div class="meta"><span>${c.n}</span><span class="sep"></span><span>${b.z}</span><span class="sep"></span><span>${b.p}</span></div>
+    <div class="card-top"><h3>${b.n}</h3><span class="rate">${ico('i-estrella')}${b.r ? b.r.toFixed(1) : '5.0'}</span></div>
+    <div class="meta"><span>${c.n}</span><span class="sep"></span><span>${b.z}</span><span class="sep"></span><span>${b.p || '$$'}</span></div>
     <div class="card-foot">
-      <div class="pay-row">${b.pays.slice(0, 5).map(p => payChip(p, 1)).join('')}</div>
-      <span class="mono" style="font-size:.78rem;color:var(--muted)">${b.d.toFixed(1)} km</span>
+      <div class="pay-row">${(b.pays || []).slice(0, 5).map(p => payChip(p, 1)).join('')}</div>
+      <span class="mono" style="font-size:.78rem;color:var(--muted)">${b.d ? b.d.toFixed(1) : '1.0'} km</span>
     </div>
   </div>
 </article>`}
@@ -3001,12 +3010,111 @@
         $('#r-zona').textContent = $('#n-zona').value;
         $('#r-tel').textContent = $('#n-tel').value || 'Sin teléfono';
         $('#r-pays').innerHTML = $$('#n-pays .pay-toggle.on').map(p => payChip(p.dataset.p, 1)).join('') || '—';
+        if (uploadedLogoUrl) {
+          $('#r-logo-row').style.display = 'flex';
+          $('#r-logo-wrap').innerHTML = `<img src="${uploadedLogoUrl}" alt="Logo cargado" style="max-height:48px; border-radius:6px; object-fit:contain;">`;
+        } else {
+          $('#r-logo-row').style.display = 'none';
+        }
       }
       window.scrollTo({ top: 0, behavior: 'smooth' });
       if (s === 2) setTimeout(() => pickMap.invalidateSize(), 60);
     }));
     $$('#n-pays .pay-toggle').forEach(p => p.addEventListener('click', () => p.classList.toggle('on')));
-    $('#drop').addEventListener('click', () => toast('En la versión final abre el selector de archivos'));
+
+    /* ===================== GESTIÓN DE SUBIDA DE IMAGEN ===================== */
+    let uploadedLogoUrl = '';
+    const dropEl = $('#drop');
+    const fileInput = $('#n-file');
+    const dropPrompt = $('#drop-prompt');
+    const dropPreview = $('#drop-preview');
+    const imgPreview = $('#img-preview');
+    const uploadStatus = $('#upload-status-text');
+
+    if (dropEl && fileInput) {
+      dropEl.addEventListener('click', () => fileInput.click());
+
+      ['dragenter', 'dragover'].forEach(evt => {
+        dropEl.addEventListener(evt, e => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropEl.style.borderColor = 'var(--brand)';
+          dropEl.style.background = 'var(--brand-soft)';
+        });
+      });
+
+      ['dragleave', 'drop'].forEach(evt => {
+        dropEl.addEventListener(evt, e => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropEl.style.borderColor = '';
+          dropEl.style.background = '';
+        });
+      });
+
+      dropEl.addEventListener('drop', e => {
+        const dt = e.dataTransfer;
+        if (dt && dt.files && dt.files[0]) {
+          handleImageUpload(dt.files[0]);
+        }
+      });
+
+      fileInput.addEventListener('change', e => {
+        if (e.target.files && e.target.files[0]) {
+          handleImageUpload(e.target.files[0]);
+        }
+      });
+    }
+
+    async function handleImageUpload(file) {
+      const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+      if (!allowed.includes(file.type)) {
+        toast('Formato inválido. Solo se admiten JPG, PNG o WebP.');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast('La imagen no puede pesar más de 5 MB.');
+        return;
+      }
+
+      // Vista previa local inmediata
+      const reader = new FileReader();
+      reader.onload = ev => {
+        imgPreview.src = ev.target.result;
+        dropPrompt.style.display = 'none';
+        dropPreview.style.display = 'flex';
+      };
+      reader.readAsDataURL(file);
+
+      uploadStatus.style.display = 'block';
+      uploadStatus.textContent = 'Subiendo imagen…';
+      uploadStatus.style.color = 'var(--brand)';
+
+      const fd = new FormData();
+      fd.append('image', file);
+
+      try {
+        const res = await fetch('api/upload/image.php', {
+          method: 'POST',
+          body: fd
+        });
+        const json = await res.json();
+        if (json.success && json.data) {
+          uploadedLogoUrl = json.data.url;
+          uploadStatus.textContent = '✓ Imagen guardada correctamente.';
+          uploadStatus.style.color = 'var(--pay-efectivo)';
+          toast('Foto/logo subido con éxito.');
+        } else {
+          uploadStatus.textContent = '⚠ ' + (json.message || 'Error al subir');
+          uploadStatus.style.color = 'var(--hot)';
+          toast(json.message || 'Error al subir la imagen');
+        }
+      } catch (err) {
+        uploadStatus.textContent = '⚠ Error de conexión al subir la imagen.';
+        uploadStatus.style.color = 'var(--hot)';
+        toast('No se pudo conectar para subir la imagen.');
+      }
+    }
     /* ===================== INTEGRACIÓN CON BACKEND (PHP + MYSQL) ===================== */
     let currentAuthUser = null;
     let adminComerciosList = [];
@@ -3370,6 +3478,7 @@
         zona: $('#n-zona').value || 'Chacao',
         latitud: (typeof pickMarker !== 'undefined' && pickMarker) ? pickMarker.getLatLng().lat : 10.4975,
         longitud: (typeof pickMarker !== 'undefined' && pickMarker) ? pickMarker.getLatLng().lng : -66.8542,
+        logo_url: uploadedLogoUrl || null,
         estado: (currentAuthUser && currentAuthUser.rol === 'admin') ? 'aprobado' : 'pendiente',
         metodos_pago: pays
       };

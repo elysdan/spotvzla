@@ -31,6 +31,7 @@ try {
             e.verificado AS ver,
             e.descripcion AS `desc`,
             e.telefono AS tel,
+            e.logo_url,
             GROUP_CONCAT(mp.slug ORDER BY mp.orden SEPARATOR ',') AS pays_str
         FROM empresas e
         INNER JOIN categorias c ON c.id = e.categoria_id
