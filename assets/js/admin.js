@@ -1002,24 +1002,6 @@
       }
     });
 
-    // 9. Carga de Comercios Aprobados desde MySQL para Mapa y Directorio
-    async function loadBusinessesFromAPI() {
-      try {
-        const res = await fetch('api/empresas/list.php');
-        const json = await res.json();
-        if (json.success && json.data && json.data.comercios && json.data.comercios.length > 0) {
-          BIZ.length = 0;
-          json.data.comercios.forEach(c => BIZ.push(c));
-          $('#home-cards').innerHTML = BIZ.slice(0, 6).map(cardHTML).join('');
-          $('#all-cards').innerHTML = BIZ.map(cardHTML).join('');
-          $('#all-count').textContent = BIZ.length + ' comercios';
-          $('#b-count').textContent = BIZ.length;
-          refresh();
-        }
-      } catch (err) {
-        console.warn('Cargando con comercios estáticos de respaldo:', err);
-      }
-    }
 
     /* ===================== arranque ===================== */
     initMaps();

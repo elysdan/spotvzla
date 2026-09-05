@@ -4,6 +4,7 @@
  */
 
 require_once __DIR__ . '/../models/Empresa.php';
+require_once __DIR__ . '/../models/Categoria.php';
 require_once __DIR__ . '/../includes/helpers.php';
 
 class EmpresaController
@@ -15,11 +16,15 @@ class EmpresaController
             $zona      = clean($_GET['zona'] ?? '');
             $metodo    = clean($_GET['pago'] ?? '');
 
-            $comercios = Empresa::getPublicList($categoria, $zona, $metodo);
+            $comercios  = Empresa::getPublicList($categoria, $zona, $metodo);
+            $categorias = Categoria::getActiveWithCounts(true);
+            $stats      = Empresa::getPublicStats();
 
             jsonResponse(true, 'Comercios obtenidos.', [
-                'comercios' => $comercios,
-                'total'     => count($comercios)
+                'comercios'  => $comercios,
+                'total'      => count($comercios),
+                'categorias' => $categorias,
+                'stats'      => $stats
             ]);
         } catch (Throwable $e) {
             if (defined('APP_DEBUG') && APP_DEBUG) {

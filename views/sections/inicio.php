@@ -2,7 +2,13 @@
     <section class="hero">
       <div class="wrap hero-grid">
         <div>
-          <span class="eyebrow">Venezuela · 1.284 comercios verificados</span>
+<?php
+$numVerif = isset($statsPublicas['verificadas']) ? (int)$statsPublicas['verificadas'] : 0;
+$textoVerif = $numVerif === 1 ? '1 comercio verificado' : "{$numVerif} comercios verificados";
+$numTotalComercios = isset($comerciosAprobados) ? count($comerciosAprobados) : 0;
+$textoCoinciden = $numTotalComercios === 1 ? 'comercio coincide ahora mismo' : 'comercios coinciden ahora mismo';
+?>
+          <span class="eyebrow" id="hero-verified-count">Venezuela · <?= $textoVerif ?></span>
           <h1 style="margin-top:1rem">Encuentra tu sitio ideal<br><span>y disfruta sin complicaciones.</span></h1>
           <p class="hero-sub">La plataforma para descubrir los mejores restaurantes, locales y sitios de
             entretenimiento cerca de ti. Organiza tu salida fácilmente y conoce toda la información antes de ir.</p>
@@ -12,30 +18,30 @@
               Busco un
               <span class="slot"><select id="b-cat">
                   <option value="all">comercio</option>
-                  <option>restaurante</option>
-                  <option>café</option>
-                  <option>panadería</option>
-                  <option>supermercado</option>
-                  <option>hotel</option>
-                  <option>bar</option>
+                  <?php if (!empty($categoriasActivas)): ?>
+                    <?php foreach ($categoriasActivas as $c): ?>
+                      <option value="<?= htmlspecialchars($c['k']) ?>"><?= htmlspecialchars(strtolower($c['n'])) ?></option>
+                    <?php endforeach; ?>
+                  <?php endif; ?>
                 </select><svg viewBox="0 0 24 24">
                   <path d="m6 9 6 6 6-6" />
                 </svg></span>
               en
               <span class="slot"><select id="b-zona">
+                  <option value="all">toda Caracas</option>
                   <option>Chacao</option>
                   <option>Las Mercedes</option>
                   <option>Altamira</option>
                   <option>Sabana Grande</option>
                   <option>La Castellana</option>
-                  <option>toda Caracas</option>
+                  <option>San Bernardino</option>
                 </select><svg viewBox="0 0 24 24">
                   <path d="m6 9 6 6 6-6" />
                 </svg></span>
               que acepte
             </div>
             <div class="pay-row" style="margin-top:.9rem" id="b-pays">
-              <span class="pay pay-cashea pay-toggle on" data-p="cashea"><i>C</i>Cashea</span>
+              <span class="pay pay-cashea pay-toggle" data-p="cashea"><i>C</i>Cashea</span>
               <span class="pay pay-zelle pay-toggle" data-p="zelle"><i>Z</i>Zelle</span>
               <span class="pay pay-zinlli pay-toggle" data-p="zinlli"><i>Z</i>Zinlli</span>
               <span class="pay pay-paypal pay-toggle" data-p="paypal"><i>P</i>PayPal</span>
@@ -50,7 +56,7 @@
                   <use href="#i-pin"></use>
                 </svg> Ver en el mapa
               </button>
-              <span class="builder-count"><b id="b-count">312</b> comercios coinciden ahora mismo</span>
+              <span class="builder-count"><b id="b-count"><?= $numTotalComercios ?></b> <span id="b-count-text"><?= $textoCoinciden ?></span></span>
             </div>
           </div>
         </div>

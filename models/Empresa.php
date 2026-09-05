@@ -85,6 +85,24 @@ class Empresa
         return $comercios;
     }
 
+    public static function getPublicStats(): array
+    {
+        $pdo = Database::getConnection();
+        $stmt = $pdo->query("
+            SELECT 
+                COUNT(*) as total,
+                SUM(CASE WHEN estado = 'aprobado' THEN 1 ELSE 0 END) as aprobadas,
+                SUM(CASE WHEN estado = 'aprobado' AND verificado = 1 THEN 1 ELSE 0 END) as verificadas
+            FROM empresas
+        ");
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return [
+            'total'       => (int)($row['total'] ?? 0),
+            'aprobadas'   => (int)($row['aprobadas'] ?? 0),
+            'verificadas' => (int)($row['verificadas'] ?? 0)
+        ];
+    }
+
     public static function getById(int $id): ?array
     {
         $pdo = Database::getConnection();
