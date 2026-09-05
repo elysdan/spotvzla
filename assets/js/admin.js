@@ -37,6 +37,8 @@
         .replace(/>/g, '&gt;');
     }
 
+    const getSwal = () => (typeof Swal !== 'undefined' && Swal.fire) ? Swal : ((typeof Sweetalert2 !== 'undefined' && Sweetalert2.fire) ? Sweetalert2 : (window.Swal || window.Sweetalert2 || null));
+
     // 1. Verificación de sesión al iniciar
     async function checkAuthSession() {
       try {
@@ -379,7 +381,12 @@
       $('#admin-section-comercios').hidden = false;
       $('#admin-section-usuarios').hidden = true;
       if (dtComercios) {
-        setTimeout(() => dtComercios.columns.adjust().responsive.recalc(), 50);
+        setTimeout(() => {
+          try {
+            dtComercios.columns?.adjust();
+            if (dtComercios.responsive?.recalc) dtComercios.responsive.recalc();
+          } catch(e) {}
+        }, 50);
       }
     });
 
@@ -390,7 +397,12 @@
       $('#admin-section-comercios').hidden = true;
       loadAdminUsersCount();
       if (dtUsuarios) {
-        setTimeout(() => dtUsuarios.columns.adjust().responsive.recalc(), 50);
+        setTimeout(() => {
+          try {
+            dtUsuarios.columns?.adjust();
+            if (dtUsuarios.responsive?.recalc) dtUsuarios.responsive.recalc();
+          } catch(e) {}
+        }, 50);
       }
     });
 
@@ -595,14 +607,52 @@
       }
     });
 
-    // Eliminar Comercio (Admin)
-    window.openDeleteEmpresa = function(id, name) {
+    // Eliminar Comercio (Admin con SweetAlert2)
+    window.openDeleteEmpresa = async function(id, name) {
+      const swal = getSwal();
+      if (swal) {
+        const result = await swal.fire({
+          title: '¿Eliminar este comercio?',
+          html: `Estás a punto de eliminar permanentemente a <b>${escapeHtml(name)}</b>.<br><span style="font-size:.85rem; color:var(--muted); display:inline-block; margin-top:.4rem;">Esta acción no se puede deshacer y borrará la ficha del mapa.</span>`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Sí, eliminar comercio',
+          cancelButtonText: 'Cancelar',
+          customClass: {
+            confirmButton: 'swal2-confirm swal2-danger',
+            cancelButton: 'swal2-cancel'
+          },
+          buttonsStyling: false
+        });
+
+        if (!result.isConfirmed) return;
+
+        try {
+          const res = await fetch('api/admin/empresas/delete.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id })
+          });
+          const json = await res.json();
+          if (json.success) {
+            toast('Comercio eliminado permanentemente.', 'success');
+            loadAdminData();
+            loadBusinessesFromAPI();
+          } else {
+            toast(json.message || 'Error al eliminar el comercio.', 'error');
+          }
+        } catch (err) {
+          toast('Error de conexión al eliminar.', 'error');
+        }
+        return;
+      }
+
       $('#del-emp-id').value = id;
       $('#del-emp-nombre').textContent = name;
-      $('#modal-delete-empresa').classList.add('on');
+      $('#modal-delete-empresa')?.classList.add('on');
     };
 
-    const closeModalDeleteEmpresa = () => $('#modal-delete-empresa').classList.remove('on');
+    const closeModalDeleteEmpresa = () => $('#modal-delete-empresa')?.classList.remove('on');
     $('#btn-cancel-del-empresa')?.addEventListener('click', closeModalDeleteEmpresa);
     $('#modal-delete-empresa')?.addEventListener('click', (e) => {
       if (e.target.id === 'modal-delete-empresa') closeModalDeleteEmpresa();
@@ -624,15 +674,15 @@
         });
         const json = await res.json();
         if (json.success) {
-          toast('Comercio eliminado permanentemente.');
+          toast('Comercio eliminado permanentemente.', 'success');
           closeModalDeleteEmpresa();
           loadAdminData();
           loadBusinessesFromAPI();
         } else {
-          toast(json.message || 'Error al eliminar el comercio.');
+          toast(json.message || 'Error al eliminar el comercio.', 'error');
         }
       } catch (err) {
-        toast('Error de conexión al eliminar.');
+        toast('Error de conexión al eliminar.', 'error');
       } finally {
         btn.disabled = false;
         btn.textContent = 'Sí, eliminar comercio';
@@ -778,34 +828,82 @@
       }
     });
 
-    // 7.2. Modal de Eliminación de Usuario (Admin CRUD)
-    window.openDeleteUser = function(id, nombre, email, totalEmpresas) {
+    // 7.2. Modal de Eliminación de Usuario (Admin CRUD con SweetAlert2)
+    window.openDeleteUser = async function(id, nombre, email, totalEmpresas) {
+      const swal = getSwal();
       if (currentAuthUser && currentAuthUser.id === id) {
-        toast('No puedes eliminar tu propia cuenta de administrador.');
+        if (swal) {
+          swal.fire({
+            icon: 'error',
+            title: 'Acción no permitida',
+            text: 'No puedes eliminar tu propia cuenta de administrador en sesión.',
+            confirmButtonText: 'Entendido',
+            customClass: { confirmButton: 'swal2-confirm' },
+            buttonsStyling: false
+          });
+        } else {
+          toast('No puedes eliminar tu propia cuenta de administrador.', 'error');
+        }
+        return;
+      }
+
+      if (totalEmpresas > 0) {
+        if (swal) {
+          swal.fire({
+            icon: 'warning',
+            title: 'Usuario con comercios asignados',
+            html: `El usuario <b>${escapeHtml(nombre)}</b> tiene <b>${totalEmpresas} comercio(s)</b> asignado(s).<br><span style="font-size:.85rem; color:var(--muted); display:inline-block; margin-top:.4rem;">Primero debes reasignar sus comercios a otro usuario antes de poder eliminarlo.</span>`,
+            confirmButtonText: 'Entendido',
+            customClass: { confirmButton: 'swal2-confirm' },
+            buttonsStyling: false
+          });
+        } else {
+          toast(`Tiene ${totalEmpresas} comercio(s) asignado(s). Reasigna primero.`, 'warning');
+        }
+        return;
+      }
+
+      if (swal) {
+        const result = await swal.fire({
+          title: '¿Eliminar este usuario?',
+          html: `Estás a punto de eliminar a <b>${escapeHtml(nombre)}</b> (<i>${escapeHtml(email)}</i>).<br><span style="font-size:.85rem; color:var(--muted); display:inline-block; margin-top:.4rem;">Esta acción no se podrá deshacer.</span>`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Sí, eliminar usuario',
+          cancelButtonText: 'Cancelar',
+          customClass: {
+            confirmButton: 'swal2-confirm swal2-danger',
+            cancelButton: 'swal2-cancel'
+          },
+          buttonsStyling: false
+        });
+
+        if (!result.isConfirmed) return;
+
+        try {
+          const res = await fetch('api/admin/usuarios/delete.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id })
+          });
+          const json = await res.json();
+          if (json.success) {
+            toast('Usuario eliminado exitosamente.', 'success');
+            loadAdminUsersCount();
+            loadAdminData();
+          } else {
+            toast(json.message || 'Error al eliminar usuario.', 'error');
+          }
+        } catch (err) {
+          toast('Error de conexión al eliminar usuario.', 'error');
+        }
         return;
       }
 
       $('#del-user-id').value = id;
       $('#del-user-nombre').textContent = nombre;
       $('#del-user-email').textContent = email;
-
-      const errEl = $('#del-user-error');
-      const confirmBtn = $('#btn-confirm-del-user');
-
-      if (totalEmpresas > 0) {
-        errEl.textContent = `No es posible eliminar este usuario porque tiene ${totalEmpresas} comercio(s) asignado(s). Primero reasigna sus comercios a otro usuario.`;
-        errEl.style.display = 'block';
-        confirmBtn.disabled = true;
-        confirmBtn.style.opacity = '.4';
-        confirmBtn.style.cursor = 'not-allowed';
-      } else {
-        errEl.style.display = 'none';
-        confirmBtn.disabled = false;
-        confirmBtn.style.opacity = '1';
-        confirmBtn.style.cursor = 'pointer';
-      }
-
-      $('#modal-delete-user').classList.add('on');
+      $('#modal-delete-user')?.classList.add('on');
     };
 
     const closeModalDeleteUser = () => $('#modal-delete-user')?.classList.remove('on');
@@ -830,20 +928,15 @@
         });
         const json = await res.json();
         if (json.success) {
-          toast('Usuario eliminado exitosamente.');
+          toast('Usuario eliminado exitosamente.', 'success');
           closeModalDeleteUser();
           loadAdminUsersCount();
           loadAdminData();
         } else {
-          toast(json.message || 'Error al eliminar usuario.');
-          const errEl = $('#del-user-error');
-          if (errEl) {
-            errEl.textContent = json.message || 'Error al eliminar usuario.';
-            errEl.style.display = 'block';
-          }
+          toast(json.message || 'Error al eliminar usuario.', 'error');
         }
       } catch (err) {
-        toast('Error de conexión al eliminar usuario.');
+        toast('Error de conexión al eliminar usuario.', 'error');
       } finally {
         btn.disabled = false;
         btn.textContent = 'Sí, eliminar usuario';

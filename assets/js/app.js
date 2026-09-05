@@ -47,7 +47,54 @@
     const $ = (s, c = document) => c.querySelector(s), $$ = (s, c = document) => [...c.querySelectorAll(s)];
     const payChip = (k, mini) => `<span class="pay pay-${k}${mini ? ' mini' : ''}" title="${PAYS[k].n}"><i>${PAYS[k].l}</i>${mini ? '' : PAYS[k].n}</span>`;
     const ico = id => `<svg><use href="#${id}"></use></svg>`;
-    function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('on'), 2600) }
+    function getSwalToast() {
+      const swalInstance = (typeof Swal !== 'undefined' && Swal.mixin) ? Swal : ((typeof Sweetalert2 !== 'undefined' && Sweetalert2.mixin) ? Sweetalert2 : (window.Swal || window.Sweetalert2 || null));
+      if (swalInstance && swalInstance.mixin) {
+        return swalInstance.mixin({
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+          didOpen: (t) => {
+            t.addEventListener('mouseenter', swalInstance.stopTimer);
+            t.addEventListener('mouseleave', swalInstance.resumeTimer);
+          }
+        });
+      }
+      return null;
+    }
+
+    function toast(m, iconType) {
+      const swalToast = getSwalToast();
+      if (swalToast) {
+        let icon = iconType;
+        if (!icon) {
+          const lower = String(m).toLowerCase();
+          if (lower.includes('error') || lower.includes('no fue') || lower.includes('incorrect') || lower.includes('inválid') || lower.includes('falló') || lower.includes('no se')) {
+            icon = 'error';
+          } else if (lower.includes('advertencia') || lower.includes('atención') || lower.includes('aviso')) {
+            icon = 'warning';
+          } else if (lower.includes('centrando') || lower.includes('ubicación') || lower.includes('info')) {
+            icon = 'info';
+          } else {
+            icon = 'success';
+          }
+        }
+        swalToast.fire({
+          icon: icon,
+          title: m
+        });
+      } else {
+        const t = $('#toast');
+        if (t) {
+          t.textContent = m;
+          t.classList.add('on');
+          clearTimeout(t._t);
+          t._t = setTimeout(() => t.classList.remove('on'), 2600);
+        }
+      }
+    }
 
     function cardHTML(b) {
       const c = CATMAP[b.cat] || { g: 'linear-gradient(135deg,#0F9B8E,#0A6E64)', i: 'i-tienda', n: b.cat || 'Comercio' };

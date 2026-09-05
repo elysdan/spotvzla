@@ -2007,3 +2007,144 @@
     table.dataTable tbody tr:hover td {
       background: var(--bg) !important;
     }
+
+    /* ============================================================
+       Personalización de SweetAlert2 acorde a SPOT
+       ============================================================ */
+    .swal2-container {
+      z-index: 2000 !important;
+      font-family: inherit !important;
+    }
+
+    .swal2-popup {
+      background: var(--surface) !important;
+      color: var(--ink) !important;
+      border: 1px solid var(--line) !important;
+      border-radius: var(--r-l) !important;
+      padding: 1.8rem 2rem !important;
+      box-shadow: var(--shadow-lg) !important;
+    }
+
+    .swal2-title {
+      font-family: "Bricolage Grotesque", Georgia, serif !important;
+      color: var(--ink) !important;
+      font-size: 1.45rem !important;
+      font-weight: 700 !important;
+      letter-spacing: -.02em !important;
+    }
+
+    .swal2-html-container {
+      color: var(--muted) !important;
+      font-size: .95rem !important;
+      line-height: 1.55 !important;
+      margin-top: .6rem !important;
+    }
+
+    .swal2-actions {
+      gap: .75rem !important;
+      margin-top: 1.6rem !important;
+    }
+
+    .swal2-actions button,
+    .swal2-styled {
+      border-radius: 999px !important;
+      font-size: .92rem !important;
+      font-weight: 600 !important;
+      padding: .65rem 1.4rem !important;
+      box-shadow: none !important;
+      transition: all .18s ease !important;
+      cursor: pointer !important;
+      outline: none !important;
+    }
+
+    .swal2-actions button.swal2-confirm,
+    .swal2-styled.swal2-confirm {
+      background: var(--brand) !important;
+      color: #FFFFFF !important;
+      border: 1px solid var(--brand) !important;
+    }
+
+    [data-theme="dark"] .swal2-actions button.swal2-confirm,
+    [data-theme="dark"] .swal2-styled.swal2-confirm {
+      color: #04211E !important;
+    }
+
+    .swal2-actions button.swal2-confirm:hover,
+    .swal2-styled.swal2-confirm:hover {
+      background: var(--brand-ink) !important;
+      border-color: var(--brand-ink) !important;
+      transform: translateY(-1px);
+    }
+
+    .swal2-actions button.swal2-confirm.swal2-danger,
+    .swal2-styled.swal2-confirm.swal2-danger {
+      background: var(--hot) !important;
+      border-color: var(--hot) !important;
+      color: #FFFFFF !important;
+    }
+
+    .swal2-actions button.swal2-confirm.swal2-danger:hover,
+    .swal2-styled.swal2-confirm.swal2-danger:hover {
+      background: #b91c1c !important;
+      border-color: #b91c1c !important;
+      transform: translateY(-1px);
+    }
+
+    .swal2-actions button.swal2-cancel,
+    .swal2-styled.swal2-cancel {
+      background: var(--surface) !important;
+      color: var(--ink) !important;
+      border: 1px solid var(--line) !important;
+    }
+
+    .swal2-actions button.swal2-cancel:hover,
+    .swal2-styled.swal2-cancel:hover {
+      background: var(--bg-alt) !important;
+      border-color: var(--muted) !important;
+      transform: translateY(-1px);
+    }
+
+    /* Toasts de SweetAlert2 */
+    .swal2-toast {
+      background: var(--surface) !important;
+      color: var(--ink) !important;
+      border: 1px solid var(--line) !important;
+      border-radius: var(--r-m) !important;
+      box-shadow: var(--shadow) !important;
+      padding: .85rem 1.1rem !important;
+    }
+
+    .swal2-toast .swal2-title {
+      font-family: inherit !important;
+      font-size: .92rem !important;
+      font-weight: 600 !important;
+      color: var(--ink) !important;
+    }
+
+    .swal2-timer-progress-bar {
+      background: var(--brand) !important;
+      height: 3px !important;
+    }
+
+    .swal2-icon.swal2-warning {
+      border-color: var(--sun) !important;
+      color: var(--sun) !important;
+    }
+
+    .swal2-icon.swal2-error {
+      border-color: var(--hot) !important;
+      color: var(--hot) !important;
+    }
+
+    .swal2-icon.swal2-success {
+      border-color: var(--brand) !important;
+      color: var(--brand) !important;
+    }
+
+    .swal2-icon.swal2-success [class^='swal2-success-line'] {
+      background-color: var(--brand) !important;
+    }
+
+    .swal2-icon.swal2-success .swal2-success-ring {
+      border-color: color-mix(in srgb, var(--brand) 35%, transparent) !important;
+    }
