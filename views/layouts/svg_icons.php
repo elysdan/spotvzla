@@ -105,4 +105,7 @@
     <symbol id="i-play" viewBox="0 0 24 24">
       <polygon points="5 3 19 12 5 21 5 3" />
     </symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24">
+      <path d="M5 12h14M12 5v14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    </symbol>
   </svg>

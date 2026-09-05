@@ -408,9 +408,34 @@ class Empresa
         if (is_array($input)) {
             $clean = [];
             foreach ($input as $k => $v) {
-                $val = trim((string)$v);
-                if ($val !== '') {
-                    $clean[$k] = $val;
+                if ($k === 'otras' && is_array($v)) {
+                    $otrasClean = [];
+                    foreach ($v as $item) {
+                        if (is_array($item)) {
+                            $nom = trim((string)($item['nombre'] ?? ''));
+                            $val = trim((string)($item['valor'] ?? ''));
+                            $ico = trim((string)($item['icono'] ?? ''));
+                            if ($nom !== '' && $val !== '') {
+                                $entry = [
+                                    'nombre' => $nom,
+                                    'valor'  => $val
+                                ];
+                                if ($ico !== '') {
+                                    $entry['icono'] = $ico;
+                                }
+                                $otrasClean[] = $entry;
+                            }
+
+                        }
+                    }
+                    if (!empty($otrasClean)) {
+                        $clean['otras'] = $otrasClean;
+                    }
+                } elseif (!is_array($v)) {
+                    $val = trim((string)$v);
+                    if ($val !== '') {
+                        $clean[$k] = $val;
+                    }
                 }
             }
             return !empty($clean) ? json_encode($clean, JSON_UNESCAPED_UNICODE) : null;

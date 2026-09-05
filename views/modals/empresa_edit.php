@@ -77,7 +77,12 @@
         </div>
 
         <div class="f">
-          <label style="font-weight:600; margin-bottom:.3rem;">Redes Sociales y Enlaces <em>· opcional</em></label>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:.3rem;">
+            <label style="font-weight:600; margin:0;">Redes Sociales y Enlaces <em>· opcional</em></label>
+            <button type="button" class="btn btn-ghost btn-sm" id="btn-add-red-edit" style="display:inline-flex; align-items:center; gap:.4rem; font-size:.82rem; padding:.3rem .7rem; border-color:var(--line);">
+              <svg class="ico" style="width:14px; height:14px; stroke-width:2.5;"><use href="#i-plus"></use></svg> Agregar red social
+            </button>
+          </div>
           <div class="f-row">
             <div class="f">
               <label for="edit-emp-instagram" style="font-size:.78rem;">Instagram</label>
@@ -98,6 +103,7 @@
               <input type="url" id="edit-emp-web" placeholder="https://...">
             </div>
           </div>
+          <div id="container-otras-redes-edit" style="display:flex; flex-direction:column; gap:.6rem; margin-top:.6rem;"></div>
         </div>
 
         <div class="f">

@@ -14,8 +14,9 @@
 
         <div id="d-redes-section" style="display:none; margin-top:1.4rem;">
           <div class="flabel">Redes Sociales y Contacto</div>
-          <div id="d-redes" style="display:flex; gap:.5rem; flex-wrap:wrap; margin-top:.4rem;"></div>
+          <div id="d-redes" class="social-icons-wrap"></div>
         </div>
+
 
         <div class="flabel">Horario</div>
         <div style="max-width:420px" id="d-hours"></div>

@@ -457,34 +457,134 @@
       $('#d-price').textContent = b.p || '$$';
       $('#d-del').textContent = b.del ? 'Sí' : 'No disponible';
 
+      function buildSocialIconBtn(nombre, valor, customIcon = '') {
+        const nom = (nombre || 'Enlace').trim();
+        const val = (valor || '').trim();
+        if (!val) return '';
+
+        const lowerNom = nom.toLowerCase();
+        let url = val;
+        let iconClass = customIcon;
+        let btnClass = 'social-btn-' + lowerNom.replace(/[^a-z0-9]/g, '-');
+        let title = `${nom}: ${val}`;
+
+        if (lowerNom.includes('insta')) {
+          const handle = val.replace(/^@/, '');
+          url = `https://instagram.com/${handle}`;
+          iconClass = iconClass || 'fa-brands fa-instagram';
+          btnClass = 'social-btn-instagram';
+          title = `Instagram (@${handle})`;
+        } else if (lowerNom.includes('whats') || lowerNom.includes('ws')) {
+          const num = val.replace(/[^0-9]/g, '');
+          url = `https://wa.me/${num}`;
+          iconClass = iconClass || 'fa-brands fa-whatsapp';
+          btnClass = 'social-btn-whatsapp';
+          title = `WhatsApp (${val})`;
+        } else if (lowerNom.includes('tik')) {
+          const handle = val.replace(/^@/, '');
+          url = `https://tiktok.com/@${handle}`;
+          iconClass = iconClass || 'fa-brands fa-tiktok';
+          btnClass = 'social-btn-tiktok';
+          title = `TikTok (@${handle})`;
+        } else if (lowerNom.includes('web') || lowerNom.includes('sitio')) {
+          url = val.startsWith('http') ? val : 'https://' + val;
+          iconClass = iconClass || 'fa-solid fa-globe';
+          btnClass = 'social-btn-web';
+          title = `Sitio Web (${url})`;
+        } else if (lowerNom.includes('face') || lowerNom.includes('fb')) {
+          url = val.startsWith('http') ? val : (val.startsWith('@') ? `https://facebook.com/${val.slice(1)}` : `https://facebook.com/${val}`);
+          iconClass = iconClass || 'fa-brands fa-facebook';
+          btnClass = 'social-btn-facebook';
+          title = `Facebook (${val})`;
+        } else if (lowerNom.includes('telegr') || lowerNom.includes('tg')) {
+          url = val.startsWith('http') ? val : (val.startsWith('@') ? `https://t.me/${val.slice(1)}` : `https://t.me/${val}`);
+          iconClass = iconClass || 'fa-brands fa-telegram';
+          btnClass = 'social-btn-telegram';
+          title = `Telegram (${val})`;
+        } else if (lowerNom.includes('you') || lowerNom.includes('yt')) {
+          url = val.startsWith('http') ? val : `https://youtube.com/${val.startsWith('@') ? val : '@' + val}`;
+          iconClass = iconClass || 'fa-brands fa-youtube';
+          btnClass = 'social-btn-youtube';
+          title = `YouTube (${val})`;
+        } else if (lowerNom.includes('twitter') || lowerNom.includes(' x') || lowerNom === 'x') {
+          url = val.startsWith('http') ? val : (val.startsWith('@') ? `https://x.com/${val.slice(1)}` : `https://x.com/${val}`);
+          iconClass = iconClass || 'fa-brands fa-x-twitter';
+          btnClass = 'social-btn-twitter';
+          title = `X / Twitter (${val})`;
+        } else if (lowerNom.includes('link')) {
+          url = val.startsWith('http') ? val : `https://linkedin.com/in/${val}`;
+          iconClass = iconClass || 'fa-brands fa-linkedin-in';
+          btnClass = 'social-btn-linkedin';
+          title = `LinkedIn (${val})`;
+        } else if (lowerNom.includes('disc')) {
+          url = val.startsWith('http') ? val : `https://discord.gg/${val}`;
+          iconClass = iconClass || 'fa-brands fa-discord';
+          btnClass = 'social-btn-discord';
+          title = `Discord (${val})`;
+        } else if (lowerNom.includes('thread')) {
+          const handle = val.replace(/^@/, '');
+          url = `https://threads.net/@${handle}`;
+          iconClass = iconClass || 'fa-brands fa-threads';
+          btnClass = 'social-btn-threads';
+          title = `Threads (@${handle})`;
+        } else if (lowerNom.includes('pinter')) {
+          url = val.startsWith('http') ? val : `https://pinterest.com/${val}`;
+          iconClass = iconClass || 'fa-brands fa-pinterest';
+          btnClass = 'social-btn-pinterest';
+          title = `Pinterest (${val})`;
+        } else {
+          const catalog = window.SPOT_REDES_CATALOG || [];
+          const match = catalog.find(x => x.nombre.toLowerCase() === lowerNom);
+          if (match) {
+            iconClass = match.icono;
+            if (match.url_base && !val.startsWith('http')) {
+              url = match.url_base + val.replace(/^@/, '');
+            }
+          }
+          if (!iconClass) iconClass = 'fa-solid fa-arrow-up-right-from-square';
+          if (!url.startsWith('http')) url = 'https://' + url;
+        }
+
+        return `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" class="social-icon-btn ${btnClass}" title="${escapeHtml(title)}" aria-label="${escapeHtml(nom)}">
+          <i class="${escapeHtml(iconClass)}"></i>
+        </a>`;
+      }
+
       const redesSection = $('#d-redes-section');
       const redesBox = $('#d-redes');
       if (redesSection && redesBox) {
         redesBox.innerHTML = '';
         const r = b.redes || {};
         let count = 0;
+        let btnsHtml = '';
+
         if (r.instagram) {
-          const handle = r.instagram.replace(/^@/, '');
-          redesBox.innerHTML += `<a href="https://instagram.com/${handle}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" style="display:inline-flex; align-items:center; gap:.4rem;">📸 Instagram (@${escapeHtml(handle)})</a>`;
+          btnsHtml += buildSocialIconBtn('Instagram', r.instagram);
           count++;
         }
         if (r.whatsapp) {
-          const num = r.whatsapp.replace(/[^0-9]/g, '');
-          redesBox.innerHTML += `<a href="https://wa.me/${num}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" style="display:inline-flex; align-items:center; gap:.4rem; color:var(--brand-ink);">💬 WhatsApp</a>`;
+          btnsHtml += buildSocialIconBtn('WhatsApp', r.whatsapp);
           count++;
         }
         if (r.tiktok) {
-          const handle = r.tiktok.replace(/^@/, '');
-          redesBox.innerHTML += `<a href="https://tiktok.com/@${handle}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" style="display:inline-flex; align-items:center; gap:.4rem;">🎵 TikTok (@${escapeHtml(handle)})</a>`;
+          btnsHtml += buildSocialIconBtn('TikTok', r.tiktok);
           count++;
         }
         if (r.web) {
-          const url = r.web.startsWith('http') ? r.web : 'https://' + r.web;
-          redesBox.innerHTML += `<a href="${url}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" style="display:inline-flex; align-items:center; gap:.4rem;">🌐 Sitio Web</a>`;
+          btnsHtml += buildSocialIconBtn('Sitio Web', r.web);
           count++;
         }
+        if (Array.isArray(r.otras)) {
+          r.otras.forEach(item => {
+            if (!item || !item.nombre || !item.valor) return;
+            btnsHtml += buildSocialIconBtn(item.nombre, item.valor, item.icono || '');
+            count++;
+          });
+        }
+        redesBox.innerHTML = btnsHtml;
         redesSection.style.display = count > 0 ? 'block' : 'none';
       }
+
 
       go('detalle');
       setTimeout(() => {
@@ -505,6 +605,29 @@
         $('#r-zona').textContent = $('#n-zona').value;
         $('#r-tel').textContent = $('#n-tel').value || 'Sin teléfono';
         $('#r-pays').innerHTML = $$('#n-pays .pay-toggle.on').map(p => payChip(p.dataset.p, 1)).join('') || '—';
+
+        const redesList = [];
+        if ($('#n-insta')?.value.trim()) redesList.push(`Instagram: ${$('#n-insta').value.trim()}`);
+        if ($('#n-ws')?.value.trim()) redesList.push(`WhatsApp: ${$('#n-ws').value.trim()}`);
+        if ($('#n-tiktok')?.value.trim()) redesList.push(`TikTok: ${$('#n-tiktok').value.trim()}`);
+        if ($('#n-web')?.value.trim()) redesList.push(`Web: ${$('#n-web').value.trim()}`);
+        $$('#container-otras-redes-negocio .dynamic-red-row').forEach(row => {
+          const nom = row.querySelector('.input-red-nombre')?.value.trim();
+          const val = row.querySelector('.input-red-valor')?.value.trim();
+          if (nom && val) redesList.push(`${nom}: ${val}`);
+        });
+
+        const rRedesRow = $('#r-redes-row');
+        const rRedes = $('#r-redes');
+        if (rRedesRow && rRedes) {
+          if (redesList.length > 0) {
+            rRedesRow.style.display = 'flex';
+            rRedes.innerHTML = redesList.map(r => `<span class="badge" style="font-weight:400; font-size:.78rem;">${escapeHtml(r)}</span>`).join(' ');
+          } else {
+            rRedesRow.style.display = 'none';
+          }
+        }
+
         if (uploadedLogoUrl) {
           $('#r-logo-row').style.display = 'flex';
           $('#r-logo-wrap').innerHTML = `<img src="${uploadedLogoUrl}" alt="Logo cargado" style="max-height:48px; border-radius:6px; object-fit:contain;">`;

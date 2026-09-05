@@ -7,15 +7,18 @@ require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/models/Categoria.php';
 require_once __DIR__ . '/models/Empresa.php';
+require_once __DIR__ . '/models/RedSocial.php';
 
 try {
-    $statsPublicas     = Empresa::getPublicStats();
-    $categoriasActivas = Categoria::getActiveWithCounts(true);
+    $statsPublicas      = Empresa::getPublicStats();
+    $categoriasActivas  = Categoria::getActiveWithCounts(true);
     $comerciosAprobados = Empresa::getPublicList();
+    $redesSociales      = RedSocial::getAll(true);
 } catch (Throwable $e) {
-    $statsPublicas     = ['total' => 0, 'aprobadas' => 0, 'verificadas' => 0];
-    $categoriasActivas = [];
+    $statsPublicas      = ['total' => 0, 'aprobadas' => 0, 'verificadas' => 0];
+    $categoriasActivas  = [];
     $comerciosAprobados = [];
+    $redesSociales      = [];
 }
 ?>
 <!DOCTYPE html>
@@ -50,14 +53,17 @@ try {
   <?php include __DIR__ . '/views/modals/user_delete.php'; ?>
   <?php include __DIR__ . '/views/modals/empresa_edit.php'; ?>
   <?php include __DIR__ . '/views/modals/empresa_delete.php'; ?>
+  <?php include __DIR__ . '/views/modals/red_social_modal.php'; ?>
 
   <script>
     window.SPOT_INITIAL_DATA = {
       categorias: <?= json_encode($categoriasActivas, JSON_UNESCAPED_UNICODE) ?>,
       stats: <?= json_encode($statsPublicas, JSON_UNESCAPED_UNICODE) ?>,
-      comercios: <?= json_encode($comerciosAprobados, JSON_UNESCAPED_UNICODE) ?>
+      comercios: <?= json_encode($comerciosAprobados, JSON_UNESCAPED_UNICODE) ?>,
+      redes_sociales: <?= json_encode($redesSociales, JSON_UNESCAPED_UNICODE) ?>
     };
   </script>
+
   <!-- Scripts y Librerías -->
   <?php include __DIR__ . '/views/layouts/scripts.php'; ?>
 </body>

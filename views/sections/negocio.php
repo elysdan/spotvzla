@@ -58,6 +58,15 @@
           <div class="f"><label for="n-tiktok">TikTok <em>· opcional</em></label><input type="text" id="n-tiktok" placeholder="@tucomercio"></div>
           <div class="f"><label for="n-web">Sitio Web / Menú <em>· opcional</em></label><input type="url" id="n-web" placeholder="https://..."></div>
         </div>
+        <div class="f" style="margin-top:.6rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:.4rem;">
+            <label style="font-weight:600; margin:0; font-size:.88rem;">Otras Redes Sociales <em>· opcional</em></label>
+            <button type="button" class="btn btn-ghost btn-sm" id="btn-add-red-negocio" style="display:inline-flex; align-items:center; gap:.4rem; font-size:.82rem; padding:.35rem .75rem; border-color:var(--line);">
+              <svg class="ico" style="width:14px; height:14px; stroke-width:2.5;"><use href="#i-plus"></use></svg> Agregar red social
+            </button>
+          </div>
+          <div id="container-otras-redes-negocio" style="display:flex; flex-direction:column; gap:.6rem;"></div>
+        </div>
         <div class="wz-foot"><span></span><button class="btn btn-primary" data-next="2">Continuar</button></div>
       </section>
 
@@ -126,6 +135,7 @@
           <div class="kv"><span>Zona</span><b id="r-zona">—</b></div>
           <div class="kv"><span>Contacto</span><b id="r-tel">—</b></div>
           <div class="kv"><span>Pagos</span><b id="r-pays" style="display:flex;gap:.25rem">—</b></div>
+          <div class="kv" id="r-redes-row" style="display:none;"><span>Redes</span><b id="r-redes" style="display:flex; flex-wrap:wrap; gap:.3rem; font-size:.84rem;">—</b></div>
           <div class="kv" id="r-logo-row" style="display:none;"><span>Foto/Logo</span><b id="r-logo-wrap">—</b></div>
         </div>
         <div class="f" style="margin-top:1.4rem"><label

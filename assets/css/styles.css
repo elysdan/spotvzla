@@ -2148,3 +2148,160 @@
     .swal2-icon.swal2-success .swal2-success-ring {
       border-color: color-mix(in srgb, var(--brand) 35%, transparent) !important;
     }
+
+    /* Filas dinámicas de redes sociales */
+    .dynamic-red-row {
+      display: grid;
+      grid-template-columns: 180px 1fr auto;
+      gap: .6rem;
+      align-items: flex-end;
+      background: var(--bg);
+      border: 1px dashed var(--line);
+      border-radius: var(--r-m);
+      padding: .6rem .8rem;
+      transition: border-color .15s ease, background .15s ease;
+    }
+    .dynamic-red-row:hover {
+      border-color: var(--brand);
+      background: color-mix(in srgb, var(--brand) 3%, var(--bg));
+    }
+    .dynamic-red-row .f {
+      margin: 0;
+    }
+    .dynamic-red-row .btn-remove-red {
+      color: var(--muted);
+      height: 38px;
+      width: 38px;
+      min-width: 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--r-s);
+      border: 1px solid var(--line);
+      background: var(--surface);
+      cursor: pointer;
+      transition: all .15s ease;
+    }
+    .dynamic-red-row .btn-remove-red:hover {
+      color: var(--hot);
+      border-color: var(--hot);
+      background: color-mix(in srgb, var(--hot) 10%, transparent);
+    }
+    @media (max-width: 600px) {
+      .dynamic-red-row {
+        grid-template-columns: 1fr;
+      }
+      .dynamic-red-row .btn-remove-red {
+        width: 100%;
+        margin-top: .2rem;
+      }
+    }
+
+    /* Botones de Iconos Oficiales para Redes Sociales (Font Awesome) */
+    .social-icons-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .65rem;
+      align-items: center;
+      margin-top: .5rem;
+    }
+
+    .social-icon-btn {
+      width: 44px;
+      height: 44px;
+      min-width: 44px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--ink);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      text-decoration: none;
+      transition: all .22s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      position: relative;
+    }
+
+    .social-icon-btn:hover {
+      transform: translateY(-3px) scale(1.1);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.18);
+    }
+
+    /* Colores y gradientes de marca auténticos al pasar el cursor */
+    .social-btn-instagram:hover {
+      background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);
+      color: #fff !important;
+      border-color: transparent;
+    }
+    .social-btn-whatsapp:hover {
+      background: #25D366;
+      color: #fff !important;
+      border-color: transparent;
+    }
+    .social-btn-tiktok:hover {
+      background: #000000;
+      color: #ffffff !important;
+      border-color: #25F4EE;
+      box-shadow: 0 6px 18px rgba(37, 244, 238, 0.35);
+    }
+    .social-btn-web:hover, .social-btn-sitio-web:hover {
+      background: var(--brand);
+      color: #fff !important;
+      border-color: transparent;
+    }
+    .social-btn-facebook:hover {
+      background: #1877F2;
+      color: #fff !important;
+      border-color: transparent;
+    }
+    .social-btn-telegram:hover {
+      background: #229ED9;
+      color: #fff !important;
+      border-color: transparent;
+    }
+    .social-btn-youtube:hover {
+      background: #FF0000;
+      color: #fff !important;
+      border-color: transparent;
+    }
+    .social-btn-twitter:hover, .social-btn-x:hover, .social-btn-twitter---x:hover {
+      background: #111111;
+      color: #ffffff !important;
+      border-color: #444444;
+    }
+    .social-btn-linkedin:hover {
+      background: #0A66C2;
+      color: #fff !important;
+      border-color: transparent;
+    }
+    .social-btn-discord:hover {
+      background: #5865F2;
+      color: #fff !important;
+      border-color: transparent;
+    }
+    .social-btn-threads:hover {
+      background: #000000;
+      color: #ffffff !important;
+      border-color: #555555;
+    }
+    .social-btn-pinterest:hover {
+      background: #E60023;
+      color: #fff !important;
+      border-color: transparent;
+    }
+
+    /* Celda de icono en tabla de administración */
+    .admin-icon-preview {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+    }
+

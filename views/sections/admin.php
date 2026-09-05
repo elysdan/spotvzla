@@ -31,10 +31,12 @@
           <div class="stat"><span class="eyebrow">Total Usuarios</span><b id="stat-total-usuarios">0</b></div>
         </div>
 
-        <div class="tabs" style="max-width:340px; margin-bottom:1.8rem;">
+        <div class="tabs" style="max-width:500px; margin-bottom:1.8rem;">
           <button class="on" id="admin-tab-btn-comercios">Comercios</button>
           <button id="admin-tab-btn-usuarios">Usuarios</button>
+          <button id="admin-tab-btn-redes">Redes Sociales</button>
         </div>
+
 
         <!-- SECCIÓN 1: GESTIÓN DE COMERCIOS -->
         <section id="admin-section-comercios">
@@ -101,7 +103,40 @@
             </table>
           </div>
         </section>
+ 
+        <!-- SECCIÓN 3: MAESTRO DE REDES SOCIALES -->
+        <section id="admin-section-redes" hidden>
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.2rem;">
+            <p style="color:var(--muted); font-size:.9rem; margin:0;">
+              Catálogo maestro para alimentar selectores y asociar iconos oficiales de Font Awesome.
+            </p>
+            <button class="btn btn-primary btn-sm" id="btn-open-create-red">
+              + Nueva Red Social
+            </button>
+          </div>
+
+          <div class="tbl-wrap">
+            <table class="tbl display" id="table-admin-redes" style="width:100%">
+              <thead>
+                <tr>
+                  <th style="width:40px;">#</th>
+                  <th style="width:50px; text-align:center;">Icono</th>
+                  <th>Nombre</th>
+                  <th>Clase Font Awesome</th>
+                  <th>URL Base / Prefijo</th>
+                  <th>Color</th>
+                  <th>Estado</th>
+                  <th style="text-align:right; min-width:110px;">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="admin-redes-rows">
+                <tr><td colspan="8" style="text-align:center; padding:2rem; color:var(--muted)">Cargando redes sociales...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
       </div>
+
     </div>
   </main>
 
