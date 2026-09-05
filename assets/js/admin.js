@@ -307,6 +307,12 @@
             : (u.rol === 'empresa' ? '<span class="tag tag-wait">Comercio</span>' : '<span class="tag">Usuario</span>');
           
           const dateStr = u.created_at ? u.created_at.slice(0, 10) : '—';
+          const isSelf = currentAuthUser && currentAuthUser.id === u.id;
+
+          const editBtn = `<button class="btn btn-ghost btn-sm" onclick="openEditUser(${u.id})" title="Editar usuario" style="padding:.25rem .5rem;"><svg class="ico" style="width:14px;height:14px;"><use href="#i-lapiz"></use></svg></button>`;
+          const deleteBtn = isSelf 
+            ? `<button class="btn btn-ghost btn-sm" disabled title="No puedes eliminar tu propia cuenta" style="padding:.25rem .5rem; opacity:.25; cursor:not-allowed;"><svg class="ico" style="width:14px;height:14px;"><use href="#i-x"></use></svg></button>`
+            : `<button class="btn btn-ghost btn-sm" onclick="openDeleteUser(${u.id}, '${escapeHtml(u.nombre)}', '${escapeHtml(u.email)}', ${u.total_empresas || 0})" title="Eliminar usuario" style="padding:.25rem .5rem; color:var(--hot);"><svg class="ico" style="width:14px;height:14px;"><use href="#i-x"></use></svg></button>`;
 
           return `
             <tr>
@@ -315,9 +321,15 @@
               <td>${escapeHtml(u.email)}</td>
               <td>${escapeHtml(u.telefono || '—')}</td>
               <td>${rolBadge}</td>
-              <td><span class="tag ${u.estado === 'activo' ? 'tag-ok' : 'tag-no'}">${u.estado}</span></td>
+              <td><span class="tag ${u.estado === 'activo' ? 'tag-ok' : (u.estado === 'inactivo' ? 'tag-wait' : 'tag-no')}">${u.estado}</span></td>
               <td class="mono">${u.total_empresas || 0}</td>
               <td class="mono" style="color:var(--muted)">${dateStr}</td>
+              <td style="text-align:right; white-space:nowrap;">
+                <div style="display:inline-flex; gap:.3rem; justify-content:flex-end;">
+                  ${editBtn}
+                  ${deleteBtn}
+                </div>
+              </td>
             </tr>
           `;
         }).join('');
@@ -328,7 +340,10 @@
           language: dtSpanish,
           pageLength: 10,
           responsive: true,
-          order: [[0, 'desc']]
+          order: [[0, 'desc']],
+          columnDefs: [
+            { orderable: false, targets: [8] }
+          ]
         });
       }
     }
@@ -646,6 +661,168 @@
       } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Guardar Usuario';
+      }
+    });
+
+    // 7.1. Modal de Edición de Usuario (Admin CRUD)
+    window.openEditUser = async function(id) {
+      try {
+        const res = await fetch(`api/admin/usuarios/get.php?id=${id}`);
+        const json = await res.json();
+        if (!json.success || !json.data || !json.data.usuario) {
+          toast(json.message || 'Error al obtener datos del usuario.');
+          return;
+        }
+
+        const u = json.data.usuario;
+        $('#edit-user-id').value = u.id;
+        $('#edit-u-nom').value = u.nombre || '';
+        $('#edit-u-mail').value = u.email || '';
+        $('#edit-u-tel').value = u.telefono || '';
+        $('#edit-u-rol').value = u.rol || 'empresa';
+        $('#edit-u-estado').value = u.estado || 'activo';
+        $('#edit-u-pass').value = '';
+        $('#user-edit-error').style.display = 'none';
+
+        $('#modal-edit-user').classList.add('on');
+      } catch (err) {
+        toast('Error de conexión al consultar usuario.');
+      }
+    };
+
+    const closeModalEditUser = () => $('#modal-edit-user')?.classList.remove('on');
+    $('#btn-close-modal-edit-user')?.addEventListener('click', closeModalEditUser);
+    $('#btn-cancel-edit-user')?.addEventListener('click', closeModalEditUser);
+    $('#modal-edit-user')?.addEventListener('click', (e) => {
+      if (e.target.id === 'modal-edit-user') closeModalEditUser();
+    });
+
+    $('#form-edit-user')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = parseInt($('#edit-user-id').value);
+      const nombre = $('#edit-u-nom').value.trim();
+      const email = $('#edit-u-mail').value.trim();
+      const telefono = $('#edit-u-tel').value.trim();
+      const rol = $('#edit-u-rol').value;
+      const estado = $('#edit-u-estado').value;
+      const password = $('#edit-u-pass').value;
+      const errMsg = $('#user-edit-error');
+      const submitBtn = $('#btn-submit-edit-user');
+
+      if (!nombre) {
+        errMsg.textContent = 'El nombre es obligatorio.';
+        errMsg.style.display = 'block';
+        return;
+      }
+      if (!email) {
+        errMsg.textContent = 'El correo electrónico es obligatorio.';
+        errMsg.style.display = 'block';
+        return;
+      }
+      if (password && password.length < 6) {
+        errMsg.textContent = 'La nueva contraseña debe tener al menos 6 caracteres.';
+        errMsg.style.display = 'block';
+        return;
+      }
+
+      errMsg.style.display = 'none';
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Guardando…';
+
+      try {
+        const res = await fetch('api/admin/usuarios/update.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, nombre, email, telefono, rol, estado, password })
+        });
+        const json = await res.json();
+        if (json.success) {
+          toast('Usuario actualizado exitosamente.');
+          closeModalEditUser();
+          loadAdminUsersCount();
+          loadAdminData();
+        } else {
+          errMsg.textContent = json.message || 'Error al actualizar usuario.';
+          errMsg.style.display = 'block';
+        }
+      } catch (err) {
+        errMsg.textContent = 'Error de conexión con el servidor.';
+        errMsg.style.display = 'block';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Guardar Cambios';
+      }
+    });
+
+    // 7.2. Modal de Eliminación de Usuario (Admin CRUD)
+    window.openDeleteUser = function(id, nombre, email, totalEmpresas) {
+      if (currentAuthUser && currentAuthUser.id === id) {
+        toast('No puedes eliminar tu propia cuenta de administrador.');
+        return;
+      }
+
+      $('#del-user-id').value = id;
+      $('#del-user-nombre').textContent = nombre;
+      $('#del-user-email').textContent = email;
+
+      const errEl = $('#del-user-error');
+      const confirmBtn = $('#btn-confirm-del-user');
+
+      if (totalEmpresas > 0) {
+        errEl.textContent = `No es posible eliminar este usuario porque tiene ${totalEmpresas} comercio(s) asignado(s). Primero reasigna sus comercios a otro usuario.`;
+        errEl.style.display = 'block';
+        confirmBtn.disabled = true;
+        confirmBtn.style.opacity = '.4';
+        confirmBtn.style.cursor = 'not-allowed';
+      } else {
+        errEl.style.display = 'none';
+        confirmBtn.disabled = false;
+        confirmBtn.style.opacity = '1';
+        confirmBtn.style.cursor = 'pointer';
+      }
+
+      $('#modal-delete-user').classList.add('on');
+    };
+
+    const closeModalDeleteUser = () => $('#modal-delete-user')?.classList.remove('on');
+    $('#btn-cancel-del-user')?.addEventListener('click', closeModalDeleteUser);
+    $('#modal-delete-user')?.addEventListener('click', (e) => {
+      if (e.target.id === 'modal-delete-user') closeModalDeleteUser();
+    });
+
+    $('#btn-confirm-del-user')?.addEventListener('click', async () => {
+      const id = parseInt($('#del-user-id').value);
+      if (!id) return;
+
+      const btn = $('#btn-confirm-del-user');
+      btn.disabled = true;
+      btn.textContent = 'Eliminando…';
+
+      try {
+        const res = await fetch('api/admin/usuarios/delete.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id })
+        });
+        const json = await res.json();
+        if (json.success) {
+          toast('Usuario eliminado exitosamente.');
+          closeModalDeleteUser();
+          loadAdminUsersCount();
+          loadAdminData();
+        } else {
+          toast(json.message || 'Error al eliminar usuario.');
+          const errEl = $('#del-user-error');
+          if (errEl) {
+            errEl.textContent = json.message || 'Error al eliminar usuario.';
+            errEl.style.display = 'block';
+          }
+        }
+      } catch (err) {
+        toast('Error de conexión al eliminar usuario.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Sí, eliminar usuario';
       }
     });
 

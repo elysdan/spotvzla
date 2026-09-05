@@ -71,4 +71,50 @@ class Usuario
         $pdo = Database::getConnection();
         return (int)$pdo->query("SELECT COUNT(*) FROM usuarios")->fetchColumn();
     }
+
+    public static function countEmpresasByUser(int $userId): int
+    {
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM empresas WHERE usuario_id = :uid");
+        $stmt->execute([':uid' => $userId]);
+        return (int)$stmt->fetchColumn();
+    }
+
+    public static function update(int $id, array $data): bool
+    {
+        $pdo = Database::getConnection();
+        
+        $fields = [
+            'nombre = :nombre',
+            'email = :email',
+            'telefono = :telefono',
+            'rol = :rol',
+            'estado = :estado'
+        ];
+
+        $params = [
+            ':id'       => $id,
+            ':nombre'   => trim($data['nombre']),
+            ':email'    => strtolower(trim($data['email'])),
+            ':telefono' => !empty($data['telefono']) ? trim($data['telefono']) : null,
+            ':rol'      => in_array($data['rol'] ?? '', ['admin', 'empresa', 'usuario']) ? $data['rol'] : 'empresa',
+            ':estado'   => in_array($data['estado'] ?? '', ['activo', 'inactivo', 'bloqueado']) ? $data['estado'] : 'activo'
+        ];
+
+        if (!empty($data['password'])) {
+            $fields[] = 'password_hash = :hash';
+            $params[':hash'] = password_hash($data['password'], PASSWORD_DEFAULT);
+        }
+
+        $sql = "UPDATE usuarios SET " . implode(', ', $fields) . " WHERE id = :id LIMIT 1";
+        $stmt = $pdo->prepare($sql);
+        return $stmt->execute($params);
+    }
+
+    public static function delete(int $id): bool
+    {
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare("DELETE FROM usuarios WHERE id = :id LIMIT 1");
+        return $stmt->execute([':id' => $id]);
+    }
 }

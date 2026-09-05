@@ -92,10 +92,11 @@
                   <th>Estado</th>
                   <th>Empresas</th>
                   <th>Fecha</th>
+                  <th style="text-align:right; min-width:100px;">Acciones</th>
                 </tr>
               </thead>
               <tbody id="admin-usuarios-rows">
-                <tr><td colspan="8" style="text-align:center; padding:2rem; color:var(--muted)">Cargando usuarios...</td></tr>
+                <tr><td colspan="9" style="text-align:center; padding:2rem; color:var(--muted)">Cargando usuarios...</td></tr>
               </tbody>
             </table>
           </div>

@@ -34,6 +34,8 @@ require_once __DIR__ . '/config/database.php';
   <!-- ============ MODALES ============ -->
   <?php include __DIR__ . '/views/modals/login.php'; ?>
   <?php include __DIR__ . '/views/modals/user_create.php'; ?>
+  <?php include __DIR__ . '/views/modals/user_edit.php'; ?>
+  <?php include __DIR__ . '/views/modals/user_delete.php'; ?>
   <?php include __DIR__ . '/views/modals/empresa_edit.php'; ?>
   <?php include __DIR__ . '/views/modals/empresa_delete.php'; ?>
 
