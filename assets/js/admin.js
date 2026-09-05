@@ -226,18 +226,30 @@
           const payChips = (b.metodos_pago || []).map(p => payChip(p, 1)).join('') || '—';
 
           let actionBtns = `
-            <div style="display:inline-flex; gap:.3rem; align-items:center; justify-content:flex-end;">
-              <button class="btn btn-ghost btn-sm" onclick="openEditEmpresa(${b.id})" title="Editar información del comercio">Editar</button>
+            <div style="display:inline-flex; gap:.35rem; align-items:center; justify-content:flex-end;">
+              <button class="btn-action btn-action-edit" onclick="openEditEmpresa(${b.id})" title="Editar comercio" aria-label="Editar">
+                <svg class="ico"><use href="#i-lapiz"></use></svg>
+              </button>
           `;
 
           if (b.estado !== 'aprobado') {
-            actionBtns += `<button class="btn btn-primary btn-sm" onclick="setBusinessStatus(${b.id}, 'aprobado')" title="Aprobar comercio">Aprobar</button>`;
+            actionBtns += `
+              <button class="btn-action btn-action-approve" onclick="setBusinessStatus(${b.id}, 'aprobado')" title="Aprobar y publicar comercio" aria-label="Aprobar">
+                <svg class="ico"><use href="#i-check"></use></svg>
+              </button>
+            `;
           } else {
-            actionBtns += `<button class="btn btn-ghost btn-sm" onclick="setBusinessStatus(${b.id}, 'pendiente')" title="Pausar comercio">Pausar</button>`;
+            actionBtns += `
+              <button class="btn-action btn-action-pause" onclick="setBusinessStatus(${b.id}, 'pendiente')" title="Pausar comercio" aria-label="Pausar">
+                <svg class="ico"><use href="#i-pausa"></use></svg>
+              </button>
+            `;
           }
 
           actionBtns += `
-              <button class="btn btn-ghost btn-sm" style="color:var(--hot);" onclick="openDeleteEmpresa(${b.id}, '${escapeHtml(b.nombre)}')" title="Eliminar comercio">Eliminar</button>
+              <button class="btn-action btn-action-delete" onclick="openDeleteEmpresa(${b.id}, '${escapeHtml(b.nombre)}')" title="Eliminar comercio" aria-label="Eliminar">
+                <svg class="ico"><use href="#i-trash"></use></svg>
+              </button>
             </div>
           `;
 
@@ -309,10 +321,22 @@
           const dateStr = u.created_at ? u.created_at.slice(0, 10) : '—';
           const isSelf = currentAuthUser && currentAuthUser.id === u.id;
 
-          const editBtn = `<button class="btn btn-ghost btn-sm" onclick="openEditUser(${u.id})" title="Editar usuario" style="padding:.25rem .5rem;"><svg class="ico" style="width:14px;height:14px;"><use href="#i-lapiz"></use></svg></button>`;
+          const editBtn = `
+            <button class="btn-action btn-action-edit" onclick="openEditUser(${u.id})" title="Editar usuario" aria-label="Editar">
+              <svg class="ico"><use href="#i-lapiz"></use></svg>
+            </button>
+          `;
           const deleteBtn = isSelf 
-            ? `<button class="btn btn-ghost btn-sm" disabled title="No puedes eliminar tu propia cuenta" style="padding:.25rem .5rem; opacity:.25; cursor:not-allowed;"><svg class="ico" style="width:14px;height:14px;"><use href="#i-x"></use></svg></button>`
-            : `<button class="btn btn-ghost btn-sm" onclick="openDeleteUser(${u.id}, '${escapeHtml(u.nombre)}', '${escapeHtml(u.email)}', ${u.total_empresas || 0})" title="Eliminar usuario" style="padding:.25rem .5rem; color:var(--hot);"><svg class="ico" style="width:14px;height:14px;"><use href="#i-x"></use></svg></button>`;
+            ? `
+            <button class="btn-action btn-action-delete" disabled title="No puedes eliminar tu propia cuenta en sesión" aria-label="Eliminar">
+              <svg class="ico"><use href="#i-trash"></use></svg>
+            </button>
+            `
+            : `
+            <button class="btn-action btn-action-delete" onclick="openDeleteUser(${u.id}, '${escapeHtml(u.nombre)}', '${escapeHtml(u.email)}', ${u.total_empresas || 0})" title="Eliminar usuario" aria-label="Eliminar">
+              <svg class="ico"><use href="#i-trash"></use></svg>
+            </button>
+            `;
 
           return `
             <tr>
@@ -325,7 +349,7 @@
               <td class="mono">${u.total_empresas || 0}</td>
               <td class="mono" style="color:var(--muted)">${dateStr}</td>
               <td style="text-align:right; white-space:nowrap;">
-                <div style="display:inline-flex; gap:.3rem; justify-content:flex-end;">
+                <div style="display:inline-flex; gap:.35rem; justify-content:flex-end;">
                   ${editBtn}
                   ${deleteBtn}
                 </div>

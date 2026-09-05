@@ -90,4 +90,19 @@
       <path d="m12 2 9 5-9 5-9-5Z" />
       <path d="m3 12 9 5 9-5M3 17l9 5 9-5" />
     </symbol>
+    <symbol id="i-lapiz" viewBox="0 0 24 24">
+      <path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+    </symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24">
+      <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+      <line x1="10" y1="11" x2="10" y2="17" />
+      <line x1="14" y1="11" x2="14" y2="17" />
+    </symbol>
+    <symbol id="i-pausa" viewBox="0 0 24 24">
+      <rect x="6" y="4" width="4" height="16" rx="1" />
+      <rect x="14" y="4" width="4" height="16" rx="1" />
+    </symbol>
+    <symbol id="i-play" viewBox="0 0 24 24">
+      <polygon points="5 3 19 12 5 21 5 3" />
+    </symbol>
   </svg>
