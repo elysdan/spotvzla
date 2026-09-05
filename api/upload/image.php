@@ -43,9 +43,13 @@ if (!isset($allowedMimes[$mime])) {
     jsonResponse(false, 'Formato no permitido. Solo se aceptan imágenes JPG, PNG o WebP.', null, 400);
 }
 
+$isFoto = (isset($_POST['type']) && $_POST['type'] === 'foto') || (isset($_GET['type']) && $_GET['type'] === 'foto');
+$subDir = $isFoto ? 'fotos/' : 'logos/';
+$prefix = $isFoto ? 'foto_' : 'comercio_';
+
 $ext = $allowedMimes[$mime];
-$filename = 'comercio_' . bin2hex(random_bytes(8)) . '_' . time() . '.' . $ext;
-$uploadDir = __DIR__ . '/../../uploads/logos/';
+$filename = $prefix . bin2hex(random_bytes(8)) . '_' . time() . '.' . $ext;
+$uploadDir = __DIR__ . '/../../uploads/' . $subDir;
 
 if (!is_dir($uploadDir)) {
     mkdir($uploadDir, 0755, true);
@@ -57,7 +61,7 @@ if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
     jsonResponse(false, 'No se pudo guardar la imagen en el servidor.', null, 500);
 }
 
-$publicUrl = 'uploads/logos/' . $filename;
+$publicUrl = 'uploads/' . $subDir . $filename;
 
 jsonResponse(true, 'Imagen subida correctamente.', [
     'url'      => $publicUrl,

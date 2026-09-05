@@ -17,6 +17,14 @@
           <div id="d-redes" class="social-icons-wrap"></div>
         </div>
 
+        <!-- Galería de fotos del comercio (Local, Fachada y Equipo) -->
+        <div id="d-galeria-section" style="display:none; margin-top:1.8rem;">
+          <div class="flabel" style="display:flex; justify-content:space-between; align-items:center;">
+            <span>Fotos del Local y Equipo</span>
+            <span id="d-galeria-count" style="font-size:.78rem; color:var(--muted); font-weight:normal;"></span>
+          </div>
+          <div id="d-galeria" class="comercio-gallery-grid"></div>
+        </div>
 
         <div class="flabel">Horario</div>
         <div style="max-width:420px" id="d-hours"></div>
@@ -42,4 +50,29 @@
       </aside>
     </div>
   </main>
+
+  <!-- Modal Lightbox para visualización de fotos en grande -->
+  <div class="overlay lightbox-overlay" id="modal-lightbox" role="dialog" aria-modal="true" aria-label="Visor de Fotos">
+    <div class="lightbox-container">
+      <button class="lightbox-close-btn" id="lightbox-close" aria-label="Cerrar visor">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      
+      <button class="lightbox-nav-btn lightbox-prev" id="lightbox-prev" aria-label="Foto anterior">
+        <i class="fa-solid fa-chevron-left"></i>
+      </button>
+      
+      <div class="lightbox-media-wrap">
+        <img id="lightbox-img" src="" alt="Foto del comercio">
+        <div class="lightbox-caption-bar">
+          <span id="lightbox-title"></span>
+          <span id="lightbox-counter" class="mono"></span>
+        </div>
+      </div>
+
+      <button class="lightbox-nav-btn lightbox-next" id="lightbox-next" aria-label="Foto siguiente">
+        <i class="fa-solid fa-chevron-right"></i>
+      </button>
+    </div>
+  </div>
   <!-- ============ REGISTRO DE NEGOCIO ============ -->

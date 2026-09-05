@@ -228,4 +228,34 @@ class AdminEmpresaController
             jsonResponse(false, 'Error al eliminar el comercio.', null, 500);
         }
     }
+
+    public static function deleteFoto(): void
+    {
+        Auth::requireAdmin();
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            jsonResponse(false, 'Método HTTP no permitido. Use POST.', null, 405);
+        }
+
+        $input = getRequestData();
+        $fotoId = (int)($input['foto_id'] ?? $input['id'] ?? 0);
+
+        if ($fotoId <= 0) {
+            jsonResponse(false, 'ID de foto no válido.', null, 400);
+        }
+
+        try {
+            $deleted = EmpresaFoto::delete($fotoId);
+            if ($deleted) {
+                jsonResponse(true, 'Foto eliminada correctamente.');
+            } else {
+                jsonResponse(false, 'Foto no encontrada o ya eliminada.', null, 404);
+            }
+        } catch (Throwable $e) {
+            if (defined('APP_DEBUG') && APP_DEBUG) {
+                jsonResponse(false, 'Error en servidor: ' . $e->getMessage(), null, 500);
+            }
+            jsonResponse(false, 'Error al eliminar la foto.', null, 500);
+        }
+    }
 }

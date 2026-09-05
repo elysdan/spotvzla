@@ -120,6 +120,23 @@
           </div>
           <p id="upload-status-text" class="hint" style="display:none; color:var(--brand);"></p>
         </div>
+
+        <!-- Fotos del local, instalaciones y equipo -->
+        <div class="f" style="margin-top:1.4rem;">
+          <div style="display:flex; justify-content:space-between; align-items:baseline;">
+            <label>Fotos del Local y Equipo (Galería)</label>
+            <span style="font-size:.78rem; color:var(--muted);">Muestra tu fachada, salón, productos y equipo</span>
+          </div>
+          <input type="file" id="n-galeria-files" accept="image/jpeg,image/png,image/webp" multiple style="display:none">
+          <div class="drop photo-uploader-drop" id="galeria-drop" role="button" tabindex="0" aria-label="Subir fotos del local y equipo">
+            <i class="fa-solid fa-camera-retro" style="font-size:1.6rem; color:var(--brand); margin-bottom:.4rem;"></i>
+            <b style="display:block; color:var(--ink);">Haz clic o arrastra fotos aquí</b>
+            <span style="font-size:.78rem; color:var(--muted);">Puedes seleccionar varias imágenes (JPG, PNG o WebP hasta 5 MB c/u)</span>
+          </div>
+          <p id="galeria-upload-status" class="hint" style="display:none; color:var(--brand); margin-top:.4rem;"></p>
+          <div id="n-galeria-previews" class="photos-preview-grid" style="display:none; margin-top:.8rem;"></div>
+        </div>
+
         <div class="wz-foot"><button class="btn btn-ghost" data-next="1">Atrás</button><button class="btn btn-primary"
             data-next="3">Revisar y enviar</button></div>
       </section>
@@ -137,6 +154,7 @@
           <div class="kv"><span>Pagos</span><b id="r-pays" style="display:flex;gap:.25rem">—</b></div>
           <div class="kv" id="r-redes-row" style="display:none;"><span>Redes</span><b id="r-redes" style="display:flex; flex-wrap:wrap; gap:.3rem; font-size:.84rem;">—</b></div>
           <div class="kv" id="r-logo-row" style="display:none;"><span>Foto/Logo</span><b id="r-logo-wrap">—</b></div>
+          <div class="kv" id="r-fotos-row" style="display:none;"><span>Fotos Galería</span><b id="r-fotos-wrap" style="display:flex; flex-wrap:wrap; gap:.4rem;">—</b></div>
         </div>
         <div class="f" style="margin-top:1.4rem"><label
             style="display:flex; gap:.6rem; align-items:flex-start; font-weight:400; font-size:.9rem">

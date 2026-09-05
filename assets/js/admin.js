@@ -566,6 +566,97 @@
       }
     });
 
+    /* ===================== GESTIÓN DE FOTOS EN EDICIÓN DE COMERCIO ===================== */
+    let currentEditFotos = [];
+
+    function renderEditGaleria() {
+      const container = $('#edit-galeria-container');
+      if (!container) return;
+      if (currentEditFotos.length === 0) {
+        container.innerHTML = '<span style="font-size:.8rem; color:var(--muted); grid-column:1/-1;">Sin fotos en la galería aún. Haz clic en "Añadir Fotos".</span>';
+        return;
+      }
+      container.innerHTML = currentEditFotos.map((f, idx) => `
+        <div class="admin-photo-card">
+          <img src="${escapeHtml(f.url)}" alt="Foto ${idx + 1}">
+          <button type="button" class="photo-remove-btn btn-remove-edit-foto" data-idx="${idx}" data-id="${f.id || ''}" title="Eliminar foto">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      `).join('');
+
+      container.querySelectorAll('.btn-remove-edit-foto').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const idx = parseInt(btn.getAttribute('data-idx'));
+          const fotoId = parseInt(btn.getAttribute('data-id'));
+          if (fotoId) {
+            try {
+              await fetch('api/admin/empresas/delete_foto.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ foto_id: fotoId })
+              });
+            } catch (err) {
+              console.error('Error al borrar foto en servidor:', err);
+            }
+          }
+          currentEditFotos.splice(idx, 1);
+          renderEditGaleria();
+        });
+      });
+    }
+
+    $('#btn-add-edit-fotos')?.addEventListener('click', () => {
+      $('#edit-emp-fotos-file')?.click();
+    });
+
+    $('#edit-emp-fotos-file')?.addEventListener('change', async (e) => {
+      const files = Array.from(e.target.files || []);
+      if (!files.length) return;
+
+      const statusEl = $('#edit-galeria-status');
+      if (statusEl) {
+        statusEl.style.display = 'block';
+        statusEl.textContent = `Subiendo ${files.length} foto(s)…`;
+        statusEl.style.color = 'var(--brand)';
+      }
+
+      let count = 0;
+      for (const file of files) {
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+          toast(`El archivo ${file.name} no es una imagen permitida.`, 'warning');
+          continue;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+          toast(`La imagen ${file.name} supera 5MB.`, 'warning');
+          continue;
+        }
+
+        const formData = new FormData();
+        formData.append('image', file);
+        formData.append('type', 'foto');
+
+        try {
+          const res = await fetch('api/upload/image.php', { method: 'POST', body: formData });
+          const json = await res.json();
+          if (json.success && json.data && json.data.url) {
+            currentEditFotos.push({ url: json.data.url, titulo: '' });
+            count++;
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      renderEditGaleria();
+      if (statusEl) {
+        statusEl.textContent = `✓ ${count} foto(s) agregada(s). Guarda para aplicar cambios.`;
+        statusEl.style.color = 'var(--pay-efectivo)';
+      }
+      e.target.value = '';
+    });
+
     /* ===================== MAESTRO DE REDES SOCIALES (ADMIN) ===================== */
     window.openCreateRedSocial = function() {
       $('#modal-red-social-title').textContent = 'Nueva Red Social';
@@ -851,6 +942,11 @@
           p.classList.toggle('on', activePays.includes(p.dataset.p));
         });
 
+        currentEditFotos = (emp.fotos || []).map(f => ({ id: f.id, url: f.url, titulo: f.titulo }));
+        renderEditGaleria();
+        const galStatus = $('#edit-galeria-status');
+        if (galStatus) galStatus.style.display = 'none';
+
         $('#edit-emp-error').style.display = 'none';
         $('#modal-edit-empresa').classList.add('on');
       } catch (err) {
@@ -934,7 +1030,8 @@
             descripcion,
             logo_url,
             metodos_pago,
-            redes_sociales
+            redes_sociales,
+            fotos: currentEditFotos.map(f => f.url)
           })
         });
         const json = await res.json();
@@ -1340,7 +1437,8 @@
           otras: otrasNegocio
         },
         estado: (currentAuthUser && currentAuthUser.rol === 'admin') ? 'aprobado' : 'pendiente',
-        metodos_pago: pays
+        metodos_pago: pays,
+        fotos: window.SPOT_UPLOADED_GALERIA || []
       };
 
       try {

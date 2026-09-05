@@ -134,6 +134,26 @@
           </div>
         </div>
 
+        <!-- Fotos del Comercio (Galería del Local y Equipo) -->
+        <div class="f">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:.4rem;">
+            <div>
+              <label style="margin:0;">Fotos del Local y Equipo</label>
+              <span style="display:block; font-size:.75rem; color:var(--muted);">Fachada, instalaciones, equipo de trabajo o platos</span>
+            </div>
+            <div>
+              <input type="file" id="edit-emp-fotos-file" accept="image/jpeg,image/png,image/webp" multiple style="display:none">
+              <button type="button" class="btn btn-ghost btn-sm" id="btn-add-edit-fotos" style="padding:.35rem .7rem; font-size:.8rem; gap:.3rem;">
+                <i class="fa-solid fa-cloud-arrow-up"></i> Añadir Fotos
+              </button>
+            </div>
+          </div>
+          <span id="edit-galeria-status" style="display:none; font-size:.78rem; color:var(--brand); margin-bottom:.4rem;"></span>
+          <div id="edit-galeria-container" class="admin-photos-grid">
+            <!-- Renderizado dinámico de miniaturas con botón eliminar -->
+          </div>
+        </div>
+
         <div class="f">
           <label for="edit-emp-desc">Descripción</label>
           <textarea id="edit-emp-desc" placeholder="Breve descripción del comercio"></textarea>

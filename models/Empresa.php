@@ -5,6 +5,7 @@
 
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/MetodoPago.php';
+require_once __DIR__ . '/EmpresaFoto.php';
 
 class Empresa
 {
@@ -57,6 +58,9 @@ class Empresa
         $stmt->execute($params);
         $rows = $stmt->fetchAll();
 
+        $empresaIds = array_column($rows, 'id');
+        $fotosMap = EmpresaFoto::getByEmpresas($empresaIds);
+
         $comercios = [];
         foreach ($rows as $r) {
             $pays = !empty($r['pays_str']) ? explode(',', $r['pays_str']) : [];
@@ -77,6 +81,7 @@ class Empresa
             $r['d']     = round(mt_rand(3, 35) / 10, 1);
             $r['pays']  = $pays;
             $r['redes'] = !empty($r['redes_sociales']) ? json_decode($r['redes_sociales'], true) : new stdClass();
+            $r['fotos'] = $fotosMap[$r['id']] ?? [];
             unset($r['redes_sociales']);
 
             $comercios[] = $r;
@@ -163,6 +168,7 @@ class Empresa
         $empresa['longitud']       = $empresa['longitud'] !== null ? (float)$empresa['longitud'] : null;
         $empresa['metodos_pago']   = array_column($pays, 'slug');
         $empresa['redes_sociales'] = !empty($empresa['redes_sociales']) ? json_decode($empresa['redes_sociales'], true) : new stdClass();
+        $empresa['fotos']          = EmpresaFoto::getByEmpresaId($id);
 
         return $empresa;
     }
@@ -220,7 +226,10 @@ class Empresa
         $stmt->execute($params);
         $rows = $stmt->fetchAll();
 
-        return array_map(function($r) {
+        $empresaIds = array_column($rows, 'id');
+        $fotosMap = EmpresaFoto::getByEmpresas($empresaIds);
+
+        return array_map(function($r) use ($fotosMap) {
             $r['id']             = (int)$r['id'];
             $r['usuario_id']     = (int)$r['usuario_id'];
             $r['categoria_id']   = (int)$r['categoria_id'];
@@ -233,6 +242,7 @@ class Empresa
             $r['verificado']     = (int)$r['verificado'];
             $r['metodos_pago']   = !empty($r['metodos_slugs']) ? explode(',', $r['metodos_slugs']) : [];
             $r['redes_sociales'] = !empty($r['redes_sociales']) ? json_decode($r['redes_sociales'], true) : new stdClass();
+            $r['fotos']          = $fotosMap[$r['id']] ?? [];
             unset($r['metodos_slugs']);
             return $r;
         }, $rows);
@@ -301,6 +311,10 @@ class Empresa
                 MetodoPago::syncEmpresaMetodos($empresaId, $data['metodos_pago'], $pdo);
             }
 
+            if (!empty($data['fotos']) && is_array($data['fotos'])) {
+                EmpresaFoto::sync($empresaId, $data['fotos'], $pdo);
+            }
+
             $pdo->commit();
             return $empresaId;
         } catch (Throwable $e) {
@@ -358,6 +372,10 @@ class Empresa
 
             if (isset($data['metodos_pago'])) {
                 MetodoPago::syncEmpresaMetodos($id, (array)$data['metodos_pago'], $pdo);
+            }
+
+            if (isset($data['fotos']) && is_array($data['fotos'])) {
+                EmpresaFoto::sync($id, (array)$data['fotos'], $pdo);
             }
 
             $pdo->commit();

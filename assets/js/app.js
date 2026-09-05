@@ -585,6 +585,51 @@
         redesSection.style.display = count > 0 ? 'block' : 'none';
       }
 
+      // Galería de fotos del comercio
+      const galeriaSec = $('#d-galeria-section');
+      const galeriaBox = $('#d-galeria');
+      const galeriaCount = $('#d-galeria-count');
+      const dArt = $('#d-art');
+
+      if (Array.isArray(b.fotos) && b.fotos.length > 0) {
+        currentDetailFotos = b.fotos;
+        currentDetailBizName = b.n;
+
+        // Portada en cabecera artística
+        dArt.classList.add('has-cover');
+        dArt.style.backgroundImage = `url("${escapeHtml(b.fotos[0].url)}")`;
+        dArt.innerHTML = '';
+
+        if (galeriaSec && galeriaBox) {
+          galeriaBox.innerHTML = b.fotos.map((f, idx) => `
+            <div class="gallery-item-thumb" data-index="${idx}" title="${escapeHtml(f.titulo || b.n)}">
+              <img src="${escapeHtml(f.url)}" alt="${escapeHtml(f.titulo || b.n)}" loading="lazy">
+              <div class="gallery-zoom-badge"><i class="fa-solid fa-magnifying-glass-plus"></i></div>
+              ${f.titulo ? `<div class="gallery-item-overlay"><span class="gallery-item-caption">${escapeHtml(f.titulo)}</span></div>` : ''}
+            </div>
+          `).join('');
+
+          galeriaBox.querySelectorAll('.gallery-item-thumb').forEach(thumb => {
+            thumb.addEventListener('click', () => {
+              const idx = parseInt(thumb.getAttribute('data-index')) || 0;
+              openLightbox(idx);
+            });
+          });
+
+          if (galeriaCount) {
+            galeriaCount.textContent = `${b.fotos.length} foto${b.fotos.length > 1 ? 's' : ''}`;
+          }
+          galeriaSec.style.display = 'block';
+        }
+      } else {
+        currentDetailFotos = [];
+        currentDetailBizName = b.n;
+        dArt.classList.remove('has-cover');
+        dArt.style.backgroundImage = '';
+        dArt.style.background = c.g;
+        dArt.innerHTML = ico(c.i);
+        if (galeriaSec) galeriaSec.style.display = 'none';
+      }
 
       go('detalle');
       setTimeout(() => {
@@ -633,6 +678,19 @@
           $('#r-logo-wrap').innerHTML = `<img src="${uploadedLogoUrl}" alt="Logo cargado" style="max-height:48px; border-radius:6px; object-fit:contain;">`;
         } else {
           $('#r-logo-row').style.display = 'none';
+        }
+
+        const rFotosRow = $('#r-fotos-row');
+        const rFotosWrap = $('#r-fotos-wrap');
+        if (rFotosRow && rFotosWrap) {
+          if (uploadedGaleriaFotos.length > 0) {
+            rFotosRow.style.display = 'flex';
+            rFotosWrap.innerHTML = uploadedGaleriaFotos.map(u => 
+              `<img src="${escapeHtml(u)}" style="width:36px; height:36px; border-radius:6px; object-fit:cover; border:1px solid var(--border);" alt="Foto">`
+            ).join('') + `<span style="font-size:.8rem; color:var(--muted); align-self:center; margin-left:.3rem;">(${uploadedGaleriaFotos.length})</span>`;
+          } else {
+            rFotosRow.style.display = 'none';
+          }
         }
       }
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -733,3 +791,178 @@
         toast('No se pudo conectar para subir la imagen.');
       }
     }
+
+    /* ===================== VISOR LIGHTBOX ===================== */
+    let currentDetailFotos = [];
+    let currentDetailBizName = '';
+    let currentLightboxIdx = 0;
+
+    function openLightbox(idx) {
+      if (!currentDetailFotos || currentDetailFotos.length === 0) return;
+      currentLightboxIdx = (idx >= 0 && idx < currentDetailFotos.length) ? idx : 0;
+      const foto = currentDetailFotos[currentLightboxIdx];
+
+      const modal = $('#modal-lightbox');
+      const img = $('#lightbox-img');
+      const title = $('#lightbox-title');
+      const counter = $('#lightbox-counter');
+      const prevBtn = $('#lightbox-prev');
+      const nextBtn = $('#lightbox-next');
+
+      if (img) img.src = foto.url;
+      if (title) title.textContent = foto.titulo || currentDetailBizName;
+      if (counter) counter.textContent = `${currentLightboxIdx + 1} / ${currentDetailFotos.length}`;
+
+      if (prevBtn && nextBtn) {
+        const hasMultiple = currentDetailFotos.length > 1;
+        prevBtn.style.display = hasMultiple ? 'grid' : 'none';
+        nextBtn.style.display = hasMultiple ? 'grid' : 'none';
+      }
+
+      if (modal) modal.classList.add('on');
+    }
+
+    function closeLightbox() {
+      const modal = $('#modal-lightbox');
+      if (modal) modal.classList.remove('on');
+    }
+
+    function lightboxNext() {
+      if (!currentDetailFotos.length) return;
+      openLightbox((currentLightboxIdx + 1) % currentDetailFotos.length);
+    }
+
+    function lightboxPrev() {
+      if (!currentDetailFotos.length) return;
+      openLightbox((currentLightboxIdx - 1 + currentDetailFotos.length) % currentDetailFotos.length);
+    }
+
+    $('#lightbox-close')?.addEventListener('click', closeLightbox);
+    $('#lightbox-prev')?.addEventListener('click', (e) => { e.stopPropagation(); lightboxPrev(); });
+    $('#lightbox-next')?.addEventListener('click', (e) => { e.stopPropagation(); lightboxNext(); });
+    $('#modal-lightbox')?.addEventListener('click', (e) => {
+      if (e.target.id === 'modal-lightbox' || e.target.classList.contains('lightbox-container')) {
+        closeLightbox();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      const modal = $('#modal-lightbox');
+      if (modal && modal.classList.contains('on')) {
+        if (e.key === 'Escape') closeLightbox();
+        else if (e.key === 'ArrowRight') lightboxNext();
+        else if (e.key === 'ArrowLeft') lightboxPrev();
+      }
+    });
+
+    /* ===================== GESTIÓN DE GALERÍA EN REGISTRO DE NEGOCIO ===================== */
+    let uploadedGaleriaFotos = [];
+    window.SPOT_UPLOADED_GALERIA = uploadedGaleriaFotos;
+
+    const galeriaDropEl = $('#galeria-drop');
+    const galeriaFileInput = $('#n-galeria-files');
+    const galeriaStatus = $('#galeria-upload-status');
+    const galeriaPreviews = $('#n-galeria-previews');
+
+    function renderGaleriaPreviews() {
+      window.SPOT_UPLOADED_GALERIA = uploadedGaleriaFotos;
+      if (!galeriaPreviews) return;
+      if (uploadedGaleriaFotos.length === 0) {
+        galeriaPreviews.style.display = 'none';
+        galeriaPreviews.innerHTML = '';
+        return;
+      }
+      galeriaPreviews.style.display = 'grid';
+      galeriaPreviews.innerHTML = uploadedGaleriaFotos.map((url, idx) => `
+        <div class="photo-preview-item">
+          <img src="${escapeHtml(url)}" alt="Foto ${idx + 1}">
+          <button type="button" class="photo-remove-btn" data-idx="${idx}" title="Eliminar foto">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      `).join('');
+
+      galeriaPreviews.querySelectorAll('.photo-remove-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const idx = parseInt(btn.getAttribute('data-idx'));
+          uploadedGaleriaFotos.splice(idx, 1);
+          renderGaleriaPreviews();
+        });
+      });
+    }
+
+    galeriaDropEl?.addEventListener('click', () => galeriaFileInput?.click());
+
+    galeriaFileInput?.addEventListener('change', async (e) => {
+      const files = Array.from(e.target.files || []);
+      if (!files.length) return;
+      await uploadGaleriaFiles(files);
+      galeriaFileInput.value = '';
+    });
+
+    ['dragenter', 'dragover'].forEach(ev => {
+      galeriaDropEl?.addEventListener(ev, (e) => {
+        e.preventDefault(); e.stopPropagation();
+        galeriaDropEl.style.borderColor = 'var(--brand)';
+        galeriaDropEl.style.background = 'var(--brand-soft, rgba(15,155,142,0.08))';
+      });
+    });
+
+    ['dragleave', 'drop'].forEach(ev => {
+      galeriaDropEl?.addEventListener(ev, (e) => {
+        e.preventDefault(); e.stopPropagation();
+        galeriaDropEl.style.borderColor = '';
+        galeriaDropEl.style.background = '';
+      });
+    });
+
+    galeriaDropEl?.addEventListener('drop', async (e) => {
+      const dt = e.dataTransfer;
+      const files = Array.from(dt?.files || []);
+      if (files.length) await uploadGaleriaFiles(files);
+    });
+
+    async function uploadGaleriaFiles(files) {
+      if (!galeriaStatus) return;
+      galeriaStatus.style.display = 'block';
+      galeriaStatus.textContent = `Subiendo ${files.length} foto(s)…`;
+      galeriaStatus.style.color = 'var(--brand)';
+
+      let successCount = 0;
+      for (const file of files) {
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+          toast(`El archivo ${file.name} no es una imagen válida (JPG, PNG, WebP).`, 'warning');
+          continue;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+          toast(`La imagen ${file.name} supera 5MB.`, 'warning');
+          continue;
+        }
+
+        const formData = new FormData();
+        formData.append('image', file);
+        formData.append('type', 'foto');
+
+        try {
+          const res = await fetch('api/upload/image.php', { method: 'POST', body: formData });
+          const json = await res.json();
+          if (json.success && json.data && json.data.url) {
+            uploadedGaleriaFotos.push(json.data.url);
+            successCount++;
+          }
+        } catch (err) {
+          console.error('Error al subir foto:', err);
+        }
+      }
+
+      renderGaleriaPreviews();
+      if (successCount > 0) {
+        galeriaStatus.textContent = `✓ ${successCount} foto(s) agregada(s) a la galería.`;
+        galeriaStatus.style.color = 'var(--pay-efectivo)';
+      } else {
+        galeriaStatus.textContent = '⚠ No se pudo subir ninguna imagen.';
+        galeriaStatus.style.color = 'var(--hot)';
+      }
+    }
+

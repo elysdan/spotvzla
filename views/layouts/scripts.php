@@ -3,6 +3,6 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.datatables.net/2.1.8/js/dataTables.min.js"></script>
 <script src="assets/js/sweetalert2.all.min.js"></script>
-<script src="assets/js/app.js?v=4.5"></script>
-<script src="assets/js/admin.js?v=4.5"></script>
+<script src="assets/js/app.js?v=4.7"></script>
+<script src="assets/js/admin.js?v=4.7"></script>
 
