@@ -13,6 +13,7 @@
     href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Inter+Tight:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.min.css">
   <style>
     /* ============================================================
    Maquetación de SPOTVzla
@@ -1850,6 +1851,101 @@
         transition: none !important
       }
     }
+    /* ---------- DataTables Estilos Integrados con Spot ---------- */
+    .dataTables_wrapper {
+      color: var(--ink);
+      font-family: inherit;
+      margin-top: .5rem;
+    }
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter {
+      margin-bottom: 1rem;
+      color: var(--muted);
+      font-size: .88rem;
+    }
+    .dataTables_wrapper .dataTables_filter input,
+    .dataTables_wrapper .dataTables_length select {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--r-s);
+      color: var(--ink);
+      padding: .4rem .7rem;
+      font-size: .88rem;
+      margin-left: .4rem;
+    }
+    .dataTables_wrapper .dataTables_filter input:focus,
+    .dataTables_wrapper .dataTables_length select:focus {
+      outline: none;
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px var(--brand-soft);
+    }
+    .dataTables_wrapper .dataTables_info {
+      color: var(--muted);
+      font-size: .85rem;
+      padding-top: .9rem;
+    }
+    .dataTables_wrapper .dataTables_paginate {
+      padding-top: .75rem;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+      padding: .35rem .75rem !important;
+      border-radius: var(--r-s) !important;
+      border: 1px solid var(--line) !important;
+      background: var(--surface) !important;
+      color: var(--ink) !important;
+      font-size: .85rem;
+      margin: 0 2px !important;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+      background: var(--brand-soft) !important;
+      color: var(--brand-ink) !important;
+      border-color: var(--brand) !important;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+      background: var(--brand) !important;
+      color: #FFFFFF !important;
+      border-color: var(--brand) !important;
+      font-weight: 600;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled,
+    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover {
+      opacity: .4;
+      cursor: not-allowed;
+      background: var(--surface) !important;
+      color: var(--muted) !important;
+    }
+    table.dataTable {
+      border-collapse: collapse !important;
+      width: 100% !important;
+      margin: 0 !important;
+      border: 1px solid var(--line);
+      border-radius: var(--r-m);
+      overflow: hidden;
+    }
+    table.dataTable thead th {
+      background: var(--surface-2) !important;
+      color: var(--muted) !important;
+      border-bottom: 1px solid var(--line) !important;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: .72rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      padding: .85rem 1rem !important;
+    }
+    table.dataTable tbody td {
+      padding: .85rem 1rem !important;
+      border-bottom: 1px solid var(--line-2) !important;
+      background: var(--surface) !important;
+      color: var(--ink);
+      font-size: .9rem;
+      vertical-align: middle;
+    }
+    table.dataTable tbody tr:hover td {
+      background: var(--bg) !important;
+    }
   </style>
 </head>
 
@@ -2545,20 +2641,21 @@
           </div>
 
           <div class="tbl-wrap">
-            <table class="tbl">
+            <table class="tbl display" id="table-admin-comercios" style="width:100%">
               <thead>
                 <tr>
+                  <th style="width:40px;">#</th>
                   <th>Comercio</th>
                   <th>Categoría</th>
-                  <th>Dueño / Contacto</th>
+                  <th>Dueño</th>
                   <th>Zona</th>
                   <th>Pagos</th>
                   <th>Estado</th>
-                  <th style="text-align:right">Acción</th>
+                  <th style="text-align:right; min-width:140px;">Acciones</th>
                 </tr>
               </thead>
               <tbody id="admin-comercios-rows">
-                <tr><td colspan="7" style="text-align:center; padding:2rem; color:var(--muted)">Cargando comercios...</td></tr>
+                <tr><td colspan="8" style="text-align:center; padding:2rem; color:var(--muted)">Cargando comercios...</td></tr>
               </tbody>
             </table>
           </div>
@@ -2574,10 +2671,10 @@
           </div>
 
           <div class="tbl-wrap">
-            <table class="tbl">
+            <table class="tbl display" id="table-admin-usuarios" style="width:100%">
               <thead>
                 <tr>
-                  <th>ID</th>
+                  <th style="width:40px;">#</th>
                   <th>Nombre</th>
                   <th>Correo Electrónico</th>
                   <th>Teléfono</th>
@@ -2741,8 +2838,149 @@
     </div>
   </div>
 
+  <!-- ============ MODAL EDITAR COMERCIO (ADMIN CRUD) ============ -->
+  <div class="overlay" id="modal-edit-empresa">
+    <div class="modal" style="width:min(580px, 100%)" role="dialog" aria-modal="true" aria-label="Editar Comercio">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem;">
+        <h3 style="margin:0;">Editar Información del Comercio</h3>
+        <button class="icon-btn" id="btn-close-edit-empresa" aria-label="Cerrar"><svg class="ico"><use href="#i-x"></use></svg></button>
+      </div>
+
+      <form id="form-edit-empresa" onsubmit="return false;">
+        <input type="hidden" id="edit-emp-id">
+        <input type="hidden" id="edit-emp-logo-url">
+        <div id="edit-emp-error" style="display:none; color:var(--hot); background:color-mix(in srgb, var(--hot) 12%, transparent); padding:.6rem .8rem; border-radius:8px; font-size:.85rem; margin-bottom:1rem;"></div>
+
+        <div class="f">
+          <label for="edit-emp-nombre">Nombre del Comercio</label>
+          <input type="text" id="edit-emp-nombre" placeholder="Nombre comercial" required>
+        </div>
+
+        <div class="f-row">
+          <div class="f">
+            <label for="edit-emp-cat">Categoría</label>
+            <select id="edit-emp-cat">
+              <option value="1">Restaurantes</option>
+              <option value="2">Cafés</option>
+              <option value="3">Panaderías</option>
+              <option value="4">Supermercados</option>
+              <option value="5">Hoteles</option>
+              <option value="6">Tiendas</option>
+              <option value="7">Entretenimiento</option>
+              <option value="8">Servicios</option>
+              <option value="9">Tecnología</option>
+            </select>
+          </div>
+          <div class="f">
+            <label for="edit-emp-rif">RIF <em>· opcional</em></label>
+            <input type="text" id="edit-emp-rif" placeholder="J-12345678-9">
+          </div>
+        </div>
+
+        <div class="f-row">
+          <div class="f">
+            <label for="edit-emp-usuario">Dueño Asignado</label>
+            <select id="edit-emp-usuario" required>
+              <option value="1">Administrador Spot</option>
+            </select>
+          </div>
+          <div class="f">
+            <label for="edit-emp-estado">Estado de la Ficha</label>
+            <select id="edit-emp-estado">
+              <option value="aprobado">Aprobado (Visible en el mapa)</option>
+              <option value="pendiente">Pendiente por revisar</option>
+              <option value="rechazado">Rechazado</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="f-row">
+          <div class="f">
+            <label for="edit-emp-tel">Teléfono</label>
+            <input type="tel" id="edit-emp-tel" placeholder="0412 000 0000">
+          </div>
+          <div class="f">
+            <label for="edit-emp-correo">Correo de Contacto</label>
+            <input type="email" id="edit-emp-correo" placeholder="contacto@comercio.com">
+          </div>
+        </div>
+
+        <div class="f-row">
+          <div class="f">
+            <label for="edit-emp-zona">Zona / Municipio</label>
+            <input type="text" id="edit-emp-zona" placeholder="Chacao, Las Mercedes..." required>
+          </div>
+          <div class="f">
+            <label for="edit-emp-dir">Dirección</label>
+            <input type="text" id="edit-emp-dir" placeholder="Av. o Calle" required>
+          </div>
+        </div>
+
+        <div class="f">
+          <label>Métodos de Pago Aceptados</label>
+          <div class="pay-row" id="edit-emp-pays" style="margin-top:.4rem">
+            <span class="pay pay-cashea pay-toggle" data-p="cashea"><i>C</i>Cashea</span>
+            <span class="pay pay-zelle pay-toggle" data-p="zelle"><i>Z</i>Zelle</span>
+            <span class="pay pay-zinlli pay-toggle" data-p="zinlli"><i>Z</i>Zinlli</span>
+            <span class="pay pay-paypal pay-toggle" data-p="paypal"><i>P</i>PayPal</span>
+            <span class="pay pay-movil pay-toggle" data-p="movil"><i>PM</i>Pago Móvil</span>
+            <span class="pay pay-punto pay-toggle" data-p="punto"><i>P</i>Punto</span>
+            <span class="pay pay-binance pay-toggle" data-p="binance"><i>B</i>Binance</span>
+            <span class="pay pay-efectivo pay-toggle" data-p="efectivo"><i>$</i>Efectivo</span>
+          </div>
+        </div>
+
+        <div class="f">
+          <label>Logo o Foto de Portada</label>
+          <div style="display:flex; align-items:center; gap:1rem; margin-top:.4rem;">
+            <div id="edit-logo-preview" style="width:60px; height:60px; border-radius:8px; border:1px solid var(--line); display:grid; place-items:center; overflow:hidden; background:var(--bg);">
+              <svg class="ico" style="color:var(--muted);"><use href="#i-tienda"></use></svg>
+            </div>
+            <div>
+              <input type="file" id="edit-emp-file" accept="image/jpeg,image/png,image/webp" style="display:none">
+              <button type="button" class="btn btn-ghost btn-sm" id="btn-change-edit-logo">Cambiar Imagen</button>
+              <span id="edit-upload-status" style="display:block; font-size:.78rem; color:var(--muted); margin-top:.2rem;">JPG, PNG o WebP hasta 5MB</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="f">
+          <label for="edit-emp-desc">Descripción</label>
+          <textarea id="edit-emp-desc" placeholder="Breve descripción del comercio"></textarea>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:.6rem; margin-top:1.5rem;">
+          <button type="button" class="btn btn-ghost" id="btn-cancel-edit-empresa">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btn-submit-edit-empresa">Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ MODAL CONFIRMAR ELIMINACIÓN (ADMIN CRUD) ============ -->
+  <div class="overlay" id="modal-delete-empresa">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Confirmar Eliminación">
+      <div style="width:50px; height:50px; border-radius:50%; background:color-mix(in srgb, var(--hot) 14%, transparent); color:var(--hot); display:grid; place-items:center; margin:0 auto 1rem;">
+        <svg class="ico" style="width:26px; height:26px;"><use href="#i-x"></use></svg>
+      </div>
+      <h3 style="text-align:center; margin-bottom:.5rem;">¿Eliminar este comercio?</h3>
+      <p style="text-align:center; color:var(--muted); font-size:.9rem; margin-bottom:1.5rem;">
+        Estás a punto de eliminar <b id="del-emp-nombre" style="color:var(--ink);"></b>. Esta acción eliminará permanentemente la ficha, sus métodos de pago y no se podrá deshacer.
+      </p>
+      <input type="hidden" id="del-emp-id">
+      <div style="display:flex; justify-content:center; gap:.8rem;">
+        <button type="button" class="btn btn-ghost" id="btn-cancel-del-empresa">Cancelar</button>
+        <button type="button" class="btn btn-primary" id="btn-confirm-del-empresa" style="background:var(--hot); border-color:var(--hot);">
+          Sí, eliminar comercio
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.datatables.net/2.1.8/js/dataTables.min.js"></script>
   <script>
     /* ===================== datos de demostración ===================== */
     const PAYS = {
@@ -3120,6 +3358,39 @@
     let adminComerciosList = [];
     let adminUsuariosList = [];
     let currentAdminFilter = 'all';
+    let dtComercios = null;
+    let dtUsuarios = null;
+
+    const dtSpanish = {
+      search: "Buscar:",
+      searchPlaceholder: "Filtrar resultados...",
+      lengthMenu: "Mostrar _MENU_ registros",
+      info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+      infoEmpty: "Mostrando 0 a 0 de 0 registros",
+      infoFiltered: "(filtrado de _MAX_ registros en total)",
+      zeroRecords: "No se encontraron resultados coincidentes",
+      emptyTable: "No hay datos disponibles en la tabla",
+      paginate: {
+        first: "«",
+        previous: "‹",
+        next: "›",
+        last: "»"
+      },
+      aria: {
+        orderable: "Ordenar por esta columna",
+        orderableReverse: "Invertir orden de esta columna"
+      }
+    };
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/'/g, '&#39;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
 
     // 1. Verificación de sesión al iniciar
     async function checkAuthSession() {
@@ -3289,43 +3560,68 @@
       const tbody = $('#admin-comercios-rows');
       if (!tbody) return;
 
+      if (dtComercios) {
+        dtComercios.destroy();
+        dtComercios = null;
+      }
+
       const filtered = adminComerciosList.filter(e => {
         if (currentAdminFilter === 'all') return true;
         return e.estado === currentAdminFilter;
       });
 
       if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:2rem; color:var(--muted)">No hay comercios en este estado.</td></tr>`;
-        return;
+        tbody.innerHTML = '';
+      } else {
+        tbody.innerHTML = filtered.map(b => {
+          const stBadge = b.estado === 'pendiente' 
+            ? '<span class="tag tag-wait">Por revisar</span>'
+            : (b.estado === 'aprobado' ? '<span class="tag tag-ok">Aprobado</span>' : '<span class="tag tag-no">Rechazado</span>');
+
+          const payChips = (b.metodos_pago || []).map(p => payChip(p, 1)).join('') || '—';
+
+          let actionBtns = `
+            <div style="display:inline-flex; gap:.3rem; align-items:center; justify-content:flex-end;">
+              <button class="btn btn-ghost btn-sm" onclick="openEditEmpresa(${b.id})" title="Editar información del comercio">Editar</button>
+          `;
+
+          if (b.estado !== 'aprobado') {
+            actionBtns += `<button class="btn btn-primary btn-sm" onclick="setBusinessStatus(${b.id}, 'aprobado')" title="Aprobar comercio">Aprobar</button>`;
+          } else {
+            actionBtns += `<button class="btn btn-ghost btn-sm" onclick="setBusinessStatus(${b.id}, 'pendiente')" title="Pausar comercio">Pausar</button>`;
+          }
+
+          actionBtns += `
+              <button class="btn btn-ghost btn-sm" style="color:var(--hot);" onclick="openDeleteEmpresa(${b.id}, '${escapeHtml(b.nombre)}')" title="Eliminar comercio">Eliminar</button>
+            </div>
+          `;
+
+          return `
+            <tr>
+              <td class="mono">#${b.id}</td>
+              <td><b>${escapeHtml(b.nombre)}</b>${b.rif ? `<br><small style="color:var(--muted)">${escapeHtml(b.rif)}</small>` : ''}</td>
+              <td>${escapeHtml(b.categoria_nombre || b.categoria_slug || '—')}</td>
+              <td><small><b>${escapeHtml(b.dueno_nombre || '—')}</b><br>${escapeHtml(b.dueno_email || '—')}</small></td>
+              <td>${escapeHtml(b.zona || '—')}</td>
+              <td><div class="pay-row">${payChips}</div></td>
+              <td>${stBadge}</td>
+              <td style="text-align:right; white-space:nowrap;">${actionBtns}</td>
+            </tr>
+          `;
+        }).join('');
       }
 
-      tbody.innerHTML = filtered.map(b => {
-        const stBadge = b.estado === 'pendiente' 
-          ? '<span class="tag tag-wait">Por revisar</span>'
-          : (b.estado === 'aprobado' ? '<span class="tag tag-ok">Aprobado</span>' : '<span class="tag tag-no">Rechazado</span>');
-
-        const payChips = (b.metodos_pago || []).map(p => payChip(p, 1)).join('') || '—';
-
-        let actionBtns = '';
-        if (b.estado !== 'aprobado') {
-          actionBtns += `<button class="btn btn-primary btn-sm" onclick="setBusinessStatus(${b.id}, 'aprobado')" style="margin-left:.3rem;">Aprobar</button>`;
-        }
-        if (b.estado !== 'rechazado') {
-          actionBtns += `<button class="btn btn-ghost btn-sm" onclick="setBusinessStatus(${b.id}, 'rechazado')" style="margin-left:.3rem;">Rechazar</button>`;
-        }
-
-        return `
-          <tr>
-            <td><b>${b.nombre}</b>${b.rif ? `<br><small style="color:var(--muted)">${b.rif}</small>` : ''}</td>
-            <td>${b.categoria_nombre || b.categoria_slug}</td>
-            <td><small><b>${b.dueno_nombre}</b><br>${b.dueno_email || '—'}</small></td>
-            <td>${b.zona}</td>
-            <td><div class="pay-row">${payChips}</div></td>
-            <td>${stBadge}</td>
-            <td style="text-align:right; white-space:nowrap;">${actionBtns}</td>
-          </tr>
-        `;
-      }).join('');
+      if (typeof jQuery !== 'undefined' && jQuery.fn.DataTable) {
+        dtComercios = jQuery('#table-admin-comercios').DataTable({
+          language: dtSpanish,
+          pageLength: 10,
+          responsive: true,
+          order: [[0, 'desc']],
+          columnDefs: [
+            { orderable: false, targets: [5, 7] }
+          ]
+        });
+      }
     }
 
     window.setBusinessStatus = async function(id, newStatus) {
@@ -3352,31 +3648,44 @@
       const tbody = $('#admin-usuarios-rows');
       if (!tbody) return;
 
-      if (adminUsuariosList.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:2rem; color:var(--muted)">No hay usuarios registrados.</td></tr>`;
-        return;
+      if (dtUsuarios) {
+        dtUsuarios.destroy();
+        dtUsuarios = null;
       }
 
-      tbody.innerHTML = adminUsuariosList.map(u => {
-        const rolBadge = u.rol === 'admin' 
-          ? '<span class="tag tag-ok">Admin</span>' 
-          : (u.rol === 'empresa' ? '<span class="tag tag-wait">Comercio</span>' : '<span class="tag">Usuario</span>');
-        
-        const dateStr = u.created_at ? u.created_at.slice(0, 10) : '—';
+      if (adminUsuariosList.length === 0) {
+        tbody.innerHTML = '';
+      } else {
+        tbody.innerHTML = adminUsuariosList.map(u => {
+          const rolBadge = u.rol === 'admin' 
+            ? '<span class="tag tag-ok">Admin</span>' 
+            : (u.rol === 'empresa' ? '<span class="tag tag-wait">Comercio</span>' : '<span class="tag">Usuario</span>');
+          
+          const dateStr = u.created_at ? u.created_at.slice(0, 10) : '—';
 
-        return `
-          <tr>
-            <td class="mono">#${u.id}</td>
-            <td><b>${u.nombre}</b></td>
-            <td>${u.email}</td>
-            <td>${u.telefono || '—'}</td>
-            <td>${rolBadge}</td>
-            <td><span class="tag ${u.estado === 'activo' ? 'tag-ok' : 'tag-no'}">${u.estado}</span></td>
-            <td class="mono">${u.total_empresas || 0}</td>
-            <td class="mono" style="color:var(--muted)">${dateStr}</td>
-          </tr>
-        `;
-      }).join('');
+          return `
+            <tr>
+              <td class="mono">#${u.id}</td>
+              <td><b>${escapeHtml(u.nombre)}</b></td>
+              <td>${escapeHtml(u.email)}</td>
+              <td>${escapeHtml(u.telefono || '—')}</td>
+              <td>${rolBadge}</td>
+              <td><span class="tag ${u.estado === 'activo' ? 'tag-ok' : 'tag-no'}">${u.estado}</span></td>
+              <td class="mono">${u.total_empresas || 0}</td>
+              <td class="mono" style="color:var(--muted)">${dateStr}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      if (typeof jQuery !== 'undefined' && jQuery.fn.DataTable) {
+        dtUsuarios = jQuery('#table-admin-usuarios').DataTable({
+          language: dtSpanish,
+          pageLength: 10,
+          responsive: true,
+          order: [[0, 'desc']]
+        });
+      }
     }
 
     // 6. Navegación de pestañas Admin
@@ -3385,6 +3694,9 @@
       $('#admin-tab-btn-usuarios').classList.remove('on');
       $('#admin-section-comercios').hidden = false;
       $('#admin-section-usuarios').hidden = true;
+      if (dtComercios) {
+        setTimeout(() => dtComercios.columns.adjust().responsive.recalc(), 50);
+      }
     });
 
     $('#admin-tab-btn-usuarios')?.addEventListener('click', () => {
@@ -3393,6 +3705,9 @@
       $('#admin-section-usuarios').hidden = false;
       $('#admin-section-comercios').hidden = true;
       loadAdminUsersCount();
+      if (dtUsuarios) {
+        setTimeout(() => dtUsuarios.columns.adjust().responsive.recalc(), 50);
+      }
     });
 
     $$('[data-admin-filter]').forEach(chip => chip.addEventListener('click', () => {
@@ -3400,6 +3715,229 @@
       currentAdminFilter = chip.dataset.adminFilter;
       renderAdminComercios();
     }));
+
+    // ===================== CRUD COMERCIOS (ADMIN) =====================
+    // Toggles de métodos de pago en modal de edición
+    $$('#edit-emp-pays .pay-toggle').forEach(p => p.addEventListener('click', () => p.classList.toggle('on')));
+
+    // Subida de logo en modal de edición
+    $('#btn-change-edit-logo')?.addEventListener('click', () => {
+      $('#edit-emp-file')?.click();
+    });
+
+    $('#edit-emp-file')?.addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      const statusEl = $('#edit-upload-status');
+      statusEl.textContent = 'Subiendo imagen…';
+      statusEl.style.color = 'var(--brand)';
+
+      const formData = new FormData();
+      formData.append('imagen', file);
+
+      try {
+        const res = await fetch('api/upload/image.php', {
+          method: 'POST',
+          body: formData
+        });
+        const json = await res.json();
+        if (json.success && json.data && json.data.url) {
+          $('#edit-emp-logo-url').value = json.data.url;
+          $('#edit-logo-preview').innerHTML = `<img src="${json.data.url}" alt="Preview" style="width:100%; height:100%; object-fit:cover;">`;
+          statusEl.textContent = '¡Imagen actualizada!';
+          statusEl.style.color = 'var(--ok)';
+        } else {
+          statusEl.textContent = json.message || 'Error al subir imagen.';
+          statusEl.style.color = 'var(--hot)';
+        }
+      } catch (err) {
+        statusEl.textContent = 'Error de conexión al subir imagen.';
+        statusEl.style.color = 'var(--hot)';
+      }
+    });
+
+    // Abrir modal de edición
+    window.openEditEmpresa = async function(id) {
+      try {
+        if (!adminUsuariosList || adminUsuariosList.length === 0) {
+          const uRes = await fetch('api/admin/usuarios/list.php');
+          const uJson = await uRes.json();
+          if (uJson.success && uJson.data) {
+            adminUsuariosList = uJson.data.usuarios || [];
+          }
+        }
+
+        const selectUser = $('#edit-emp-usuario');
+        if (selectUser && adminUsuariosList.length > 0) {
+          selectUser.innerHTML = adminUsuariosList.map(u => 
+            `<option value="${u.id}">${escapeHtml(u.nombre)} (${escapeHtml(u.email)}) - ${u.rol}</option>`
+          ).join('');
+        }
+
+        const res = await fetch(`api/admin/empresas/get.php?id=${id}`);
+        const json = await res.json();
+        if (!json.success || !json.data || !json.data.empresa) {
+          toast(json.message || 'No se pudo cargar la información del comercio.');
+          return;
+        }
+
+        const emp = json.data.empresa;
+        $('#edit-emp-id').value = emp.id;
+        $('#edit-emp-nombre').value = emp.nombre || '';
+        $('#edit-emp-cat').value = emp.categoria_id || 1;
+        $('#edit-emp-rif').value = emp.rif || '';
+        if (selectUser) selectUser.value = emp.usuario_id || 1;
+        $('#edit-emp-estado').value = emp.estado || 'aprobado';
+        $('#edit-emp-tel').value = emp.telefono || '';
+        $('#edit-emp-correo').value = emp.correo_contacto || '';
+        $('#edit-emp-zona').value = emp.zona || '';
+        $('#edit-emp-dir').value = emp.direccion || '';
+        $('#edit-emp-desc').value = emp.descripcion || '';
+        $('#edit-emp-logo-url').value = emp.logo_url || '';
+
+        const preview = $('#edit-logo-preview');
+        if (emp.logo_url) {
+          preview.innerHTML = `<img src="${emp.logo_url}" alt="${escapeHtml(emp.nombre)}" style="width:100%; height:100%; object-fit:cover;">`;
+        } else {
+          preview.innerHTML = `<svg class="ico" style="color:var(--muted);"><use href="#i-tienda"></use></svg>`;
+        }
+        $('#edit-upload-status').textContent = 'JPG, PNG o WebP hasta 5MB';
+        $('#edit-upload-status').style.color = 'var(--muted)';
+
+        const activePays = Array.isArray(emp.metodos_pago) ? emp.metodos_pago : [];
+        $$('#edit-emp-pays .pay-toggle').forEach(p => {
+          p.classList.toggle('on', activePays.includes(p.dataset.p));
+        });
+
+        $('#edit-emp-error').style.display = 'none';
+        $('#modal-edit-empresa').classList.add('on');
+      } catch (err) {
+        console.error('Error al abrir modal de edición:', err);
+        toast('Error al consultar datos del comercio.');
+      }
+    };
+
+    // Cerrar modal de edición
+    const closeModalEditEmpresa = () => $('#modal-edit-empresa').classList.remove('on');
+    $('#btn-close-edit-empresa')?.addEventListener('click', closeModalEditEmpresa);
+    $('#btn-cancel-edit-empresa')?.addEventListener('click', closeModalEditEmpresa);
+    $('#modal-edit-empresa')?.addEventListener('click', (e) => {
+      if (e.target.id === 'modal-edit-empresa') closeModalEditEmpresa();
+    });
+
+    // Guardar edición de comercio
+    $('#form-edit-empresa')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = parseInt($('#edit-emp-id').value);
+      const nombre = $('#edit-emp-nombre').value.trim();
+      const categoria_id = parseInt($('#edit-emp-cat').value);
+      const rif = $('#edit-emp-rif').value.trim();
+      const usuario_id = parseInt($('#edit-emp-usuario').value);
+      const estado = $('#edit-emp-estado').value;
+      const telefono = $('#edit-emp-tel').value.trim();
+      const correo_contacto = $('#edit-emp-correo').value.trim();
+      const zona = $('#edit-emp-zona').value.trim();
+      const direccion = $('#edit-emp-dir').value.trim();
+      const descripcion = $('#edit-emp-desc').value.trim();
+      const logo_url = $('#edit-emp-logo-url').value || null;
+      const metodos_pago = $$('#edit-emp-pays .pay-toggle.on').map(p => p.dataset.p);
+
+      const errMsg = $('#edit-emp-error');
+      const submitBtn = $('#btn-submit-edit-empresa');
+
+      if (!nombre) {
+        errMsg.textContent = 'El nombre del comercio es obligatorio.';
+        errMsg.style.display = 'block';
+        return;
+      }
+
+      errMsg.style.display = 'none';
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Guardando…';
+
+      try {
+        const res = await fetch('api/admin/empresas/update.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id,
+            nombre,
+            categoria_id,
+            rif,
+            usuario_id,
+            estado,
+            telefono,
+            correo_contacto,
+            zona,
+            direccion,
+            descripcion,
+            logo_url,
+            metodos_pago
+          })
+        });
+        const json = await res.json();
+        if (json.success) {
+          toast('¡Comercio actualizado correctamente!');
+          closeModalEditEmpresa();
+          loadAdminData();
+          loadBusinessesFromAPI();
+        } else {
+          errMsg.textContent = json.message || 'Error al actualizar el comercio.';
+          errMsg.style.display = 'block';
+        }
+      } catch (err) {
+        errMsg.textContent = 'Error de conexión al actualizar comercio.';
+        errMsg.style.display = 'block';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Guardar Cambios';
+      }
+    });
+
+    // Eliminar Comercio (Admin)
+    window.openDeleteEmpresa = function(id, name) {
+      $('#del-emp-id').value = id;
+      $('#del-emp-nombre').textContent = name;
+      $('#modal-delete-empresa').classList.add('on');
+    };
+
+    const closeModalDeleteEmpresa = () => $('#modal-delete-empresa').classList.remove('on');
+    $('#btn-cancel-del-empresa')?.addEventListener('click', closeModalDeleteEmpresa);
+    $('#modal-delete-empresa')?.addEventListener('click', (e) => {
+      if (e.target.id === 'modal-delete-empresa') closeModalDeleteEmpresa();
+    });
+
+    $('#btn-confirm-del-empresa')?.addEventListener('click', async () => {
+      const id = parseInt($('#del-emp-id').value);
+      if (!id) return;
+
+      const btn = $('#btn-confirm-del-empresa');
+      btn.disabled = true;
+      btn.textContent = 'Eliminando…';
+
+      try {
+        const res = await fetch('api/admin/empresas/delete.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id })
+        });
+        const json = await res.json();
+        if (json.success) {
+          toast('Comercio eliminado permanentemente.');
+          closeModalDeleteEmpresa();
+          loadAdminData();
+          loadBusinessesFromAPI();
+        } else {
+          toast(json.message || 'Error al eliminar el comercio.');
+        }
+      } catch (err) {
+        toast('Error de conexión al eliminar.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Sí, eliminar comercio';
+      }
+    });
 
     // 7. Modal de Creación de Usuarios (Admin)
     $('#btn-open-create-user')?.addEventListener('click', () => {
