@@ -34,6 +34,7 @@ try {
             e.latitud,
             e.longitud,
             e.logo_url,
+            e.redes_sociales,
             e.estado,
             e.calificacion,
             e.total_resenas,
@@ -74,6 +75,7 @@ try {
         $r['abierto'] = (int)$r['abierto'];
         $r['verificado'] = (int)$r['verificado'];
         $r['metodos_pago'] = !empty($r['metodos_slugs']) ? explode(',', $r['metodos_slugs']) : [];
+        $r['redes_sociales'] = !empty($r['redes_sociales']) ? json_decode($r['redes_sociales'], true) : new stdClass();
         unset($r['metodos_slugs']);
         return $r;
     }, $rows);

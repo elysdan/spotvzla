@@ -30,6 +30,21 @@ $logoUrl     = clean($input['logo_url'] ?? '');
 $estado      = clean($input['estado'] ?? 'aprobado');
 $metodosPago = is_array($input['metodos_pago'] ?? null) ? $input['metodos_pago'] : [];
 
+$redesInput  = $input['redes_sociales'] ?? null;
+$redesJson   = null;
+if (is_array($redesInput)) {
+    $cleanRedes = [];
+    foreach ($redesInput as $rk => $rv) {
+        $cleanVal = clean((string)$rv);
+        if ($cleanVal !== '') {
+            $cleanRedes[$rk] = $cleanVal;
+        }
+    }
+    $redesJson = !empty($cleanRedes) ? json_encode($cleanRedes, JSON_UNESCAPED_UNICODE) : null;
+} elseif (is_string($redesInput) && !empty($redesInput)) {
+    $redesJson = $redesInput;
+}
+
 // Validaciones mínimas
 if ($usuarioId <= 0) {
     jsonResponse(false, 'Debe seleccionar o especificar un usuario dueño válido.', null, 400);
@@ -72,11 +87,11 @@ try {
     $sql = "INSERT INTO empresas (
                 usuario_id, nombre, rif, categoria_id, descripcion,
                 telefono, correo_contacto, direccion, zona,
-                latitud, longitud, logo_url, estado, verificado
+                latitud, longitud, logo_url, redes_sociales, estado, verificado
             ) VALUES (
                 :uid, :nombre, :rif, :cid, :desc,
                 :tel, :correo, :dir, :zona,
-                :lat, :lng, :logo, :estado, 1
+                :lat, :lng, :logo, :redes, :estado, 1
             )";
 
     $stmt = $pdo->prepare($sql);
@@ -93,6 +108,7 @@ try {
         ':lat'    => $latitud,
         ':lng'    => $longitud,
         ':logo'   => $logoUrl ?: null,
+        ':redes'  => $redesJson,
         ':estado' => $estado
     ]);
 

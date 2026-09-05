@@ -2057,7 +2057,6 @@
         <a href="#mapa" data-go="mapa">Explorar mapa</a>
         <a href="#categorias" data-go="categorias">Categorías</a>
         <a href="#negocio" data-go="negocio">Para negocios</a>
-        <a href="#admin" data-go="admin">Panel admin</a>
       </nav>
       <div class="hdr-act">
         <button class="icon-btn" id="theme" title="Cambiar tema" aria-label="Cambiar entre modo claro y oscuro">
@@ -2122,13 +2121,6 @@
             <path d="M9 22V12h6v10" />
           </svg>
           Para negocios
-        </a>
-        <a href="#admin" data-go="admin">
-          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 20h9" />
-            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-          </svg>
-          Panel admin
         </a>
       </nav>
       <div class="mobile-drawer-foot" id="mobile-drawer-auth">
@@ -2430,6 +2422,11 @@
         <div class="pay-row" id="d-pays"></div>
         <p class="hint" id="d-verif"></p>
 
+        <div id="d-redes-section" style="display:none; margin-top:1.4rem;">
+          <div class="flabel">Redes Sociales y Contacto</div>
+          <div id="d-redes" style="display:flex; gap:.5rem; flex-wrap:wrap; margin-top:.4rem;"></div>
+        </div>
+
         <div class="flabel">Horario</div>
         <div style="max-width:420px" id="d-hours"></div>
       </div>
@@ -2506,6 +2503,14 @@
           </div>
           <div class="f"><label for="n-mail">Correo de contacto</label><input type="email" id="n-mail"
               placeholder="hola@tucomercio.com"></div>
+        </div>
+        <div class="f-row">
+          <div class="f"><label for="n-insta">Instagram <em>· opcional</em></label><input type="text" id="n-insta" placeholder="@tucomercio"></div>
+          <div class="f"><label for="n-ws">WhatsApp <em>· opcional</em></label><input type="tel" id="n-ws" placeholder="+58 412 0000000"></div>
+        </div>
+        <div class="f-row">
+          <div class="f"><label for="n-tiktok">TikTok <em>· opcional</em></label><input type="text" id="n-tiktok" placeholder="@tucomercio"></div>
+          <div class="f"><label for="n-web">Sitio Web / Menú <em>· opcional</em></label><input type="url" id="n-web" placeholder="https://..."></div>
         </div>
         <div class="wz-foot"><span></span><button class="btn btn-primary" data-next="2">Continuar</button></div>
       </section>
@@ -2740,7 +2745,7 @@
   <!-- ============ MODAL INICIO DE SESIÓN ============ -->
   <div class="overlay" id="ov">
     <div class="modal" role="dialog" aria-modal="true" aria-label="Acceder a Spot">
-      <div style="display:flex; justify-content:space-between; align-items:center">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
         <div class="logo"><svg viewBox="0 0 24 24">
             <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" fill="url(#gpin)" />
             <circle cx="12" cy="10" r="3.4" fill="#fff" opacity=".92" />
@@ -2749,17 +2754,9 @@
             <use href="#i-x"></use>
           </svg></button>
       </div>
-      <div class="tabs">
-        <button class="on" data-tab="in">Iniciar sesión</button>
-        <button data-tab="up">Crear cuenta</button>
-      </div>
 
-      <div id="tab-up" hidden>
-        <div class="demo-note" style="margin-bottom:1.2rem; font-size:.85rem;">
-          <svg class="ico"><use href="#i-info"></use></svg>
-          Actualmente el registro de comercios y usuarios es gestionado por el Administrador. Si necesitas una cuenta, contáctanos.
-        </div>
-      </div>
+      <h3 style="margin:0 0 .35rem 0;">Iniciar sesión</h3>
+      <p style="color:var(--muted); font-size:.88rem; margin:0 0 1.2rem 0;">Ingresa con tus credenciales para acceder a tu cuenta.</p>
 
       <form id="form-login" onsubmit="return false;">
         <div id="login-error-msg" style="display:none; color:var(--hot); background:color-mix(in srgb, var(--hot) 12%, transparent); padding:.6rem .8rem; border-radius:8px; font-size:.85rem; margin-bottom:1rem;"></div>
@@ -2781,9 +2778,6 @@
       <div class="oauth">
         <button class="btn btn-ghost" data-toast="OAuth disponible en la versión final">Google</button>
       </div>
-      <p style="text-align:center; margin-top:1.2rem; font-size:.85rem; color:var(--muted)">¿Tienes un comercio? <a
-          href="#negocio" data-go="negocio" data-close style="color:var(--brand-ink); font-weight:600">Regístralo
-          aquí</a></p>
     </div>
   </div>
 
@@ -2913,6 +2907,30 @@
           <div class="f">
             <label for="edit-emp-dir">Dirección</label>
             <input type="text" id="edit-emp-dir" placeholder="Av. o Calle" required>
+          </div>
+        </div>
+
+        <div class="f">
+          <label style="font-weight:600; margin-bottom:.3rem;">Redes Sociales y Enlaces <em>· opcional</em></label>
+          <div class="f-row">
+            <div class="f">
+              <label for="edit-emp-instagram" style="font-size:.78rem;">Instagram</label>
+              <input type="text" id="edit-emp-instagram" placeholder="@usuario">
+            </div>
+            <div class="f">
+              <label for="edit-emp-whatsapp" style="font-size:.78rem;">WhatsApp</label>
+              <input type="tel" id="edit-emp-whatsapp" placeholder="+58 412 0000000">
+            </div>
+          </div>
+          <div class="f-row" style="margin-top:.4rem;">
+            <div class="f">
+              <label for="edit-emp-tiktok" style="font-size:.78rem;">TikTok</label>
+              <input type="text" id="edit-emp-tiktok" placeholder="@usuario">
+            </div>
+            <div class="f">
+              <label for="edit-emp-web" style="font-size:.78rem;">Sitio Web / Menú</label>
+              <input type="url" id="edit-emp-web" placeholder="https://...">
+            </div>
           </div>
         </div>
 
@@ -3088,7 +3106,6 @@
       if (e.target.closest('[data-close]') || e.target.id === 'ov') { $('#ov').classList.remove('on'); }
       const t = e.target.closest('[data-toast]'); if (t) { toast(t.dataset.toast); }
       const c = e.target.closest('.card'); if (c) { openDetail(+c.dataset.id); }
-      const tb = e.target.closest('.tabs button'); if (tb) { $$('.tabs button').forEach(x => x.classList.toggle('on', x === tb)); $('#tab-up').hidden = tb.dataset.tab !== 'up'; }
     });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') $('#ov').classList.remove('on') });
     window.addEventListener('hashchange', () => go(location.hash.slice(1)));
@@ -3229,6 +3246,36 @@
       $('#d-rate').innerHTML = ico('i-estrella') + b.r.toFixed(1);
       $('#d-addr').textContent = b.dir; $('#d-dist').textContent = b.d.toFixed(1) + ' km';
       $('#d-price').textContent = b.p; $('#d-del').textContent = b.del ? 'Sí' : 'No disponible';
+
+      const redesSection = $('#d-redes-section');
+      const redesBox = $('#d-redes');
+      if (redesSection && redesBox) {
+        redesBox.innerHTML = '';
+        const r = b.redes || {};
+        let count = 0;
+        if (r.instagram) {
+          const handle = r.instagram.replace(/^@/, '');
+          redesBox.innerHTML += `<a href="https://instagram.com/${handle}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" style="display:inline-flex; align-items:center; gap:.4rem;">📸 Instagram (@${escapeHtml(handle)})</a>`;
+          count++;
+        }
+        if (r.whatsapp) {
+          const num = r.whatsapp.replace(/[^0-9]/g, '');
+          redesBox.innerHTML += `<a href="https://wa.me/${num}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" style="display:inline-flex; align-items:center; gap:.4rem; color:var(--brand-ink);">💬 WhatsApp</a>`;
+          count++;
+        }
+        if (r.tiktok) {
+          const handle = r.tiktok.replace(/^@/, '');
+          redesBox.innerHTML += `<a href="https://tiktok.com/@${handle}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" style="display:inline-flex; align-items:center; gap:.4rem;">🎵 TikTok (@${escapeHtml(handle)})</a>`;
+          count++;
+        }
+        if (r.web) {
+          const url = r.web.startsWith('http') ? r.web : 'https://' + r.web;
+          redesBox.innerHTML += `<a href="${url}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" style="display:inline-flex; align-items:center; gap:.4rem;">🌐 Sitio Web</a>`;
+          count++;
+        }
+        redesSection.style.display = count > 0 ? 'block' : 'none';
+      }
+
       go('detalle');
       setTimeout(() => {
         if (detMap) { detMap.remove(); detMap = null }
@@ -3796,6 +3843,12 @@
         $('#edit-emp-desc').value = emp.descripcion || '';
         $('#edit-emp-logo-url').value = emp.logo_url || '';
 
+        const redes = emp.redes_sociales || {};
+        $('#edit-emp-instagram').value = redes.instagram || '';
+        $('#edit-emp-whatsapp').value = redes.whatsapp || '';
+        $('#edit-emp-tiktok').value = redes.tiktok || '';
+        $('#edit-emp-web').value = redes.web || '';
+
         const preview = $('#edit-logo-preview');
         if (emp.logo_url) {
           preview.innerHTML = `<img src="${emp.logo_url}" alt="${escapeHtml(emp.nombre)}" style="width:100%; height:100%; object-fit:cover;">`;
@@ -3842,6 +3895,12 @@
       const descripcion = $('#edit-emp-desc').value.trim();
       const logo_url = $('#edit-emp-logo-url').value || null;
       const metodos_pago = $$('#edit-emp-pays .pay-toggle.on').map(p => p.dataset.p);
+      const redes_sociales = {
+        instagram: $('#edit-emp-instagram').value.trim(),
+        whatsapp: $('#edit-emp-whatsapp').value.trim(),
+        tiktok: $('#edit-emp-tiktok').value.trim(),
+        web: $('#edit-emp-web').value.trim()
+      };
 
       const errMsg = $('#edit-emp-error');
       const submitBtn = $('#btn-submit-edit-empresa');
@@ -3873,7 +3932,8 @@
             direccion,
             descripcion,
             logo_url,
-            metodos_pago
+            metodos_pago,
+            redes_sociales
           })
         });
         const json = await res.json();
@@ -4017,6 +4077,12 @@
         latitud: (typeof pickMarker !== 'undefined' && pickMarker) ? pickMarker.getLatLng().lat : 10.4975,
         longitud: (typeof pickMarker !== 'undefined' && pickMarker) ? pickMarker.getLatLng().lng : -66.8542,
         logo_url: uploadedLogoUrl || null,
+        redes_sociales: {
+          instagram: $('#n-insta')?.value.trim() || '',
+          whatsapp: $('#n-ws')?.value.trim() || '',
+          tiktok: $('#n-tiktok')?.value.trim() || '',
+          web: $('#n-web')?.value.trim() || ''
+        },
         estado: (currentAuthUser && currentAuthUser.rol === 'admin') ? 'aprobado' : 'pendiente',
         metodos_pago: pays
       };

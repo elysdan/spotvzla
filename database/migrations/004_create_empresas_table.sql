@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS `empresas` (
     `latitud` DECIMAL(10, 8) NULL,
     `longitud` DECIMAL(11, 8) NULL,
     `logo_url` VARCHAR(255) NULL,
+    `redes_sociales` JSON NULL,
     `estado` ENUM('pendiente', 'aprobado', 'rechazado') NOT NULL DEFAULT 'aprobado',
     `destacado` TINYINT(1) NOT NULL DEFAULT 0,
     `calificacion` DECIMAL(2, 1) NOT NULL DEFAULT 5.0,

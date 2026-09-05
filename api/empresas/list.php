@@ -32,6 +32,7 @@ try {
             e.descripcion AS `desc`,
             e.telefono AS tel,
             e.logo_url,
+            e.redes_sociales,
             GROUP_CONCAT(mp.slug ORDER BY mp.orden SEPARATOR ',') AS pays_str
         FROM empresas e
         INNER JOIN categorias c ON c.id = e.categoria_id
@@ -68,16 +69,18 @@ try {
             continue;
         }
 
-        $r['id']   = (int)$r['id'];
-        $r['lat']  = $r['lat'] !== null ? (float)$r['lat'] : 10.4975;
-        $r['lng']  = $r['lng'] !== null ? (float)$r['lng'] : -66.8542;
-        $r['r']    = (float)$r['r'];
-        $r['rv']   = (int)$r['rv'];
-        $r['open'] = (int)$r['open'];
-        $r['del']  = (int)$r['del'];
-        $r['ver']  = (int)$r['ver'];
-        $r['d']    = round(mt_rand(3, 35) / 10, 1); // distancia simulada si no hay geolocalización
-        $r['pays'] = $pays;
+        $r['id']    = (int)$r['id'];
+        $r['lat']   = $r['lat'] !== null ? (float)$r['lat'] : 10.4975;
+        $r['lng']   = $r['lng'] !== null ? (float)$r['lng'] : -66.8542;
+        $r['r']     = (float)$r['r'];
+        $r['rv']    = (int)$r['rv'];
+        $r['open']  = (int)$r['open'];
+        $r['del']   = (int)$r['del'];
+        $r['ver']   = (int)$r['ver'];
+        $r['d']     = round(mt_rand(3, 35) / 10, 1); // distancia simulada si no hay geolocalización
+        $r['pays']  = $pays;
+        $r['redes'] = !empty($r['redes_sociales']) ? json_decode($r['redes_sociales'], true) : new stdClass();
+        unset($r['redes_sociales']);
 
         $comercios[] = $r;
     }

@@ -35,6 +35,7 @@ try {
             e.latitud,
             e.longitud,
             e.logo_url,
+            e.redes_sociales,
             e.estado,
             e.calificacion,
             e.rango_precio,
@@ -67,12 +68,13 @@ try {
     $stmtPays->execute([':id' => $id]);
     $pays = $stmtPays->fetchAll();
 
-    $empresa['id']           = (int)$empresa['id'];
-    $empresa['usuario_id']   = (int)$empresa['usuario_id'];
-    $empresa['categoria_id'] = (int)$empresa['categoria_id'];
-    $empresa['latitud']      = $empresa['latitud'] !== null ? (float)$empresa['latitud'] : null;
-    $empresa['longitud']     = $empresa['longitud'] !== null ? (float)$empresa['longitud'] : null;
-    $empresa['metodos_pago'] = array_column($pays, 'slug');
+    $empresa['id']             = (int)$empresa['id'];
+    $empresa['usuario_id']     = (int)$empresa['usuario_id'];
+    $empresa['categoria_id']   = (int)$empresa['categoria_id'];
+    $empresa['latitud']        = $empresa['latitud'] !== null ? (float)$empresa['latitud'] : null;
+    $empresa['longitud']       = $empresa['longitud'] !== null ? (float)$empresa['longitud'] : null;
+    $empresa['metodos_pago']   = array_column($pays, 'slug');
+    $empresa['redes_sociales'] = !empty($empresa['redes_sociales']) ? json_decode($empresa['redes_sociales'], true) : new stdClass();
 
     jsonResponse(true, 'Detalles de empresa obtenidos.', [
         'empresa' => $empresa

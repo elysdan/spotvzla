@@ -31,6 +31,21 @@ $logoUrl     = clean($input['logo_url'] ?? '');
 $estado      = clean($input['estado'] ?? 'aprobado');
 $metodosPago = is_array($input['metodos_pago'] ?? null) ? $input['metodos_pago'] : [];
 
+$redesInput  = $input['redes_sociales'] ?? null;
+$redesJson   = null;
+if (is_array($redesInput)) {
+    $cleanRedes = [];
+    foreach ($redesInput as $rk => $rv) {
+        $cleanVal = clean((string)$rv);
+        if ($cleanVal !== '') {
+            $cleanRedes[$rk] = $cleanVal;
+        }
+    }
+    $redesJson = !empty($cleanRedes) ? json_encode($cleanRedes, JSON_UNESCAPED_UNICODE) : null;
+} elseif (is_string($redesInput) && !empty($redesInput)) {
+    $redesJson = $redesInput;
+}
+
 if ($id <= 0) {
     jsonResponse(false, 'ID de empresa no válido.', null, 400);
 }
@@ -98,6 +113,7 @@ try {
                 latitud         = :lat,
                 longitud        = :lng,
                 logo_url        = :logo,
+                redes_sociales  = :redes,
                 estado          = :estado,
                 updated_at      = NOW()
             WHERE id = :id";
@@ -116,6 +132,7 @@ try {
         ':lat'    => $latitud,
         ':lng'    => $longitud,
         ':logo'   => $logoUrl ?: null,
+        ':redes'  => $redesJson,
         ':estado' => $estado,
         ':id'     => $id
     ]);
