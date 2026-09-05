@@ -1,0 +1,734 @@
+    /* ===================== INTEGRACIÓN CON BACKEND (PHP + MYSQL) ===================== */
+    let currentAuthUser = null;
+    let adminComerciosList = [];
+    let adminUsuariosList = [];
+    let currentAdminFilter = 'all';
+    let dtComercios = null;
+    let dtUsuarios = null;
+
+    const dtSpanish = {
+      search: "Buscar:",
+      searchPlaceholder: "Filtrar resultados...",
+      lengthMenu: "Mostrar _MENU_ registros",
+      info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+      infoEmpty: "Mostrando 0 a 0 de 0 registros",
+      infoFiltered: "(filtrado de _MAX_ registros en total)",
+      zeroRecords: "No se encontraron resultados coincidentes",
+      emptyTable: "No hay datos disponibles en la tabla",
+      paginate: {
+        first: "«",
+        previous: "‹",
+        next: "›",
+        last: "»"
+      },
+      aria: {
+        orderable: "Ordenar por esta columna",
+        orderableReverse: "Invertir orden de esta columna"
+      }
+    };
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/'/g, '&#39;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    // 1. Verificación de sesión al iniciar
+    async function checkAuthSession() {
+      try {
+        const res = await fetch('api/auth/me.php');
+        const json = await res.json();
+        if (json.success && json.data && json.data.authenticated) {
+          currentAuthUser = json.data.user;
+        } else {
+          currentAuthUser = null;
+        }
+      } catch (e) {
+        currentAuthUser = null;
+      }
+      renderAuthUI();
+    }
+
+    // 2. Renderizado de interfaz según estado de autenticación
+    function renderAuthUI() {
+      const desktopSlot = $('#hdr-auth-desktop');
+      const mobileSlot = $('#mobile-drawer-auth');
+      const adminGuest = $('#admin-guest-box');
+      const adminContent = $('#admin-panel-content');
+
+      if (currentAuthUser) {
+        const roleName = currentAuthUser.rol === 'admin' ? 'Admin' : (currentAuthUser.rol === 'empresa' ? 'Comercio' : 'Usuario');
+        if (desktopSlot) {
+          desktopSlot.innerHTML = `
+            <span class="tag tag-ok" style="font-size:.82rem; padding:.32rem .75rem; white-space:nowrap;">
+              ${roleName}: <b>${currentAuthUser.nombre.split(' ')[0]}</b>
+            </span>
+            ${currentAuthUser.rol === 'admin' ? '<button class="btn btn-primary btn-sm hdr-act-desktop" data-go="admin">Panel Admin</button>' : ''}
+            <button class="btn btn-ghost btn-sm" id="btn-logout" title="Cerrar sesión">Salir</button>
+          `;
+        }
+        if (mobileSlot) {
+          mobileSlot.innerHTML = `
+            <span class="tag tag-ok" style="margin-bottom:.6rem; justify-content:center; width:100%;">
+              ${roleName}: <b>${currentAuthUser.nombre}</b>
+            </span>
+            ${currentAuthUser.rol === 'admin' ? '<button class="btn btn-primary btn-lg" style="width:100%; margin-bottom:.5rem;" data-go="admin">Panel Admin</button>' : ''}
+            <button class="btn btn-ghost btn-lg" style="width:100%" id="btn-logout-mobile">Cerrar sesión</button>
+          `;
+        }
+        if (adminGuest && adminContent) {
+          if (currentAuthUser.rol === 'admin') {
+            adminGuest.hidden = true;
+            adminContent.hidden = false;
+            $('#admin-user-tag').textContent = `${currentAuthUser.nombre} (Admin)`;
+            loadAdminData();
+          } else {
+            adminGuest.hidden = false;
+            adminContent.hidden = true;
+            adminGuest.querySelector('p').textContent = 'Tu cuenta no tiene permisos de administrador.';
+          }
+        }
+      } else {
+        if (desktopSlot) {
+          desktopSlot.innerHTML = `
+            <button class="btn btn-ghost btn-sm hdr-act-desktop" data-modal="login">Iniciar sesión</button>
+            <button class="btn btn-primary btn-sm hdr-act-desktop" data-go="negocio">Registra tu comercio</button>
+          `;
+        }
+        if (mobileSlot) {
+          mobileSlot.innerHTML = `
+            <button class="btn btn-primary btn-lg" style="width:100%" data-go="negocio">Registra tu comercio</button>
+            <button class="btn btn-ghost btn-lg" style="width:100%" data-modal="login">Iniciar sesión</button>
+          `;
+        }
+        if (adminGuest && adminContent) {
+          adminGuest.hidden = false;
+          adminContent.hidden = true;
+        }
+      }
+    }
+
+    // 3. Formulario de Inicio de Sesión
+    $('#form-login')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = $('#m-mail').value.trim();
+      const password = $('#m-pass').value;
+      const errMsg = $('#login-error-msg');
+      const submitBtn = $('#btn-login-submit');
+
+      errMsg.style.display = 'none';
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Comprobando…';
+
+      try {
+        const res = await fetch('api/auth/login.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const json = await res.json();
+        if (json.success) {
+          toast('¡Bienvenido, ' + json.data.user.nombre + '!');
+          $('#ov').classList.remove('on');
+          $('#form-login').reset();
+          currentAuthUser = json.data.user;
+          renderAuthUI();
+          if (currentAuthUser.rol === 'admin') {
+            go('admin');
+          }
+        } else {
+          errMsg.textContent = json.message || 'Error al iniciar sesión';
+          errMsg.style.display = 'block';
+        }
+      } catch (err) {
+        errMsg.textContent = 'No fue posible conectar con el servidor.';
+        errMsg.style.display = 'block';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Iniciar Sesión';
+      }
+    });
+
+    // 4. Cierre de sesión
+    document.addEventListener('click', async (e) => {
+      if (e.target.id === 'btn-logout' || e.target.id === 'btn-logout-mobile') {
+        try {
+          await fetch('api/auth/logout.php', { method: 'POST' });
+          currentAuthUser = null;
+          renderAuthUI();
+          toast('Sesión finalizada.');
+          go('inicio');
+        } catch (err) {
+          toast('Error al cerrar sesión');
+        }
+      }
+    });
+
+    // 5. Carga de datos del panel de administración
+    async function loadAdminData() {
+      try {
+        const res = await fetch('api/admin/empresas/list.php');
+        const json = await res.json();
+        if (json.success && json.data) {
+          adminComerciosList = json.data.empresas || [];
+          const st = json.data.stats || {};
+          $('#stat-pendientes').textContent = st.pendientes || 0;
+          $('#stat-aprobados').textContent = st.aprobados || 0;
+          $('#stat-total-comercios').textContent = st.total || 0;
+          renderAdminComercios();
+        }
+      } catch (err) {
+        console.error('Error al cargar comercios en admin:', err);
+      }
+      loadAdminUsersCount();
+    }
+
+    async function loadAdminUsersCount() {
+      try {
+        const res = await fetch('api/admin/usuarios/list.php');
+        const json = await res.json();
+        if (json.success && json.data) {
+          adminUsuariosList = json.data.usuarios || [];
+          $('#stat-total-usuarios').textContent = json.data.total || 0;
+          renderAdminUsuarios();
+        }
+      } catch (err) {
+        console.error('Error al cargar usuarios:', err);
+      }
+    }
+
+    function renderAdminComercios() {
+      const tbody = $('#admin-comercios-rows');
+      if (!tbody) return;
+
+      if (dtComercios) {
+        dtComercios.destroy();
+        dtComercios = null;
+      }
+
+      const filtered = adminComerciosList.filter(e => {
+        if (currentAdminFilter === 'all') return true;
+        return e.estado === currentAdminFilter;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '';
+      } else {
+        tbody.innerHTML = filtered.map(b => {
+          const stBadge = b.estado === 'pendiente' 
+            ? '<span class="tag tag-wait">Por revisar</span>'
+            : (b.estado === 'aprobado' ? '<span class="tag tag-ok">Aprobado</span>' : '<span class="tag tag-no">Rechazado</span>');
+
+          const payChips = (b.metodos_pago || []).map(p => payChip(p, 1)).join('') || '—';
+
+          let actionBtns = `
+            <div style="display:inline-flex; gap:.3rem; align-items:center; justify-content:flex-end;">
+              <button class="btn btn-ghost btn-sm" onclick="openEditEmpresa(${b.id})" title="Editar información del comercio">Editar</button>
+          `;
+
+          if (b.estado !== 'aprobado') {
+            actionBtns += `<button class="btn btn-primary btn-sm" onclick="setBusinessStatus(${b.id}, 'aprobado')" title="Aprobar comercio">Aprobar</button>`;
+          } else {
+            actionBtns += `<button class="btn btn-ghost btn-sm" onclick="setBusinessStatus(${b.id}, 'pendiente')" title="Pausar comercio">Pausar</button>`;
+          }
+
+          actionBtns += `
+              <button class="btn btn-ghost btn-sm" style="color:var(--hot);" onclick="openDeleteEmpresa(${b.id}, '${escapeHtml(b.nombre)}')" title="Eliminar comercio">Eliminar</button>
+            </div>
+          `;
+
+          return `
+            <tr>
+              <td class="mono">#${b.id}</td>
+              <td><b>${escapeHtml(b.nombre)}</b>${b.rif ? `<br><small style="color:var(--muted)">${escapeHtml(b.rif)}</small>` : ''}</td>
+              <td>${escapeHtml(b.categoria_nombre || b.categoria_slug || '—')}</td>
+              <td><small><b>${escapeHtml(b.dueno_nombre || '—')}</b><br>${escapeHtml(b.dueno_email || '—')}</small></td>
+              <td>${escapeHtml(b.zona || '—')}</td>
+              <td><div class="pay-row">${payChips}</div></td>
+              <td>${stBadge}</td>
+              <td style="text-align:right; white-space:nowrap;">${actionBtns}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      if (typeof jQuery !== 'undefined' && jQuery.fn.DataTable) {
+        dtComercios = jQuery('#table-admin-comercios').DataTable({
+          language: dtSpanish,
+          pageLength: 10,
+          responsive: true,
+          order: [[0, 'desc']],
+          columnDefs: [
+            { orderable: false, targets: [5, 7] }
+          ]
+        });
+      }
+    }
+
+    window.setBusinessStatus = async function(id, newStatus) {
+      try {
+        const res = await fetch('api/admin/empresas/update_status.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, estado: newStatus })
+        });
+        const json = await res.json();
+        if (json.success) {
+          toast(`Comercio marcado como ${newStatus}.`);
+          loadAdminData();
+          loadBusinessesFromAPI();
+        } else {
+          toast(json.message || 'Error al actualizar estado.');
+        }
+      } catch (err) {
+        toast('Error de conexión al actualizar estado.');
+      }
+    };
+
+    function renderAdminUsuarios() {
+      const tbody = $('#admin-usuarios-rows');
+      if (!tbody) return;
+
+      if (dtUsuarios) {
+        dtUsuarios.destroy();
+        dtUsuarios = null;
+      }
+
+      if (adminUsuariosList.length === 0) {
+        tbody.innerHTML = '';
+      } else {
+        tbody.innerHTML = adminUsuariosList.map(u => {
+          const rolBadge = u.rol === 'admin' 
+            ? '<span class="tag tag-ok">Admin</span>' 
+            : (u.rol === 'empresa' ? '<span class="tag tag-wait">Comercio</span>' : '<span class="tag">Usuario</span>');
+          
+          const dateStr = u.created_at ? u.created_at.slice(0, 10) : '—';
+
+          return `
+            <tr>
+              <td class="mono">#${u.id}</td>
+              <td><b>${escapeHtml(u.nombre)}</b></td>
+              <td>${escapeHtml(u.email)}</td>
+              <td>${escapeHtml(u.telefono || '—')}</td>
+              <td>${rolBadge}</td>
+              <td><span class="tag ${u.estado === 'activo' ? 'tag-ok' : 'tag-no'}">${u.estado}</span></td>
+              <td class="mono">${u.total_empresas || 0}</td>
+              <td class="mono" style="color:var(--muted)">${dateStr}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      if (typeof jQuery !== 'undefined' && jQuery.fn.DataTable) {
+        dtUsuarios = jQuery('#table-admin-usuarios').DataTable({
+          language: dtSpanish,
+          pageLength: 10,
+          responsive: true,
+          order: [[0, 'desc']]
+        });
+      }
+    }
+
+    // 6. Navegación de pestañas Admin
+    $('#admin-tab-btn-comercios')?.addEventListener('click', () => {
+      $('#admin-tab-btn-comercios').classList.add('on');
+      $('#admin-tab-btn-usuarios').classList.remove('on');
+      $('#admin-section-comercios').hidden = false;
+      $('#admin-section-usuarios').hidden = true;
+      if (dtComercios) {
+        setTimeout(() => dtComercios.columns.adjust().responsive.recalc(), 50);
+      }
+    });
+
+    $('#admin-tab-btn-usuarios')?.addEventListener('click', () => {
+      $('#admin-tab-btn-usuarios').classList.add('on');
+      $('#admin-tab-btn-comercios').classList.remove('on');
+      $('#admin-section-usuarios').hidden = false;
+      $('#admin-section-comercios').hidden = true;
+      loadAdminUsersCount();
+      if (dtUsuarios) {
+        setTimeout(() => dtUsuarios.columns.adjust().responsive.recalc(), 50);
+      }
+    });
+
+    $$('[data-admin-filter]').forEach(chip => chip.addEventListener('click', () => {
+      $$('[data-admin-filter]').forEach(c => c.classList.toggle('on', c === chip));
+      currentAdminFilter = chip.dataset.adminFilter;
+      renderAdminComercios();
+    }));
+
+    // ===================== CRUD COMERCIOS (ADMIN) =====================
+    // Toggles de métodos de pago en modal de edición
+    $$('#edit-emp-pays .pay-toggle').forEach(p => p.addEventListener('click', () => p.classList.toggle('on')));
+
+    // Subida de logo en modal de edición
+    $('#btn-change-edit-logo')?.addEventListener('click', () => {
+      $('#edit-emp-file')?.click();
+    });
+
+    $('#edit-emp-file')?.addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      const statusEl = $('#edit-upload-status');
+      statusEl.textContent = 'Subiendo imagen…';
+      statusEl.style.color = 'var(--brand)';
+
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('imagen', file);
+
+      try {
+        const res = await fetch('api/upload/image.php', {
+          method: 'POST',
+          body: formData
+        });
+        const json = await res.json();
+        if (json.success && json.data && json.data.url) {
+          $('#edit-emp-logo-url').value = json.data.url;
+          $('#edit-logo-preview').innerHTML = `<img src="${json.data.url}" alt="Preview" style="width:100%; height:100%; object-fit:cover;">`;
+          statusEl.textContent = '¡Imagen actualizada!';
+          statusEl.style.color = 'var(--pay-efectivo)';
+        } else {
+          statusEl.textContent = json.message || 'Error al subir imagen.';
+          statusEl.style.color = 'var(--hot)';
+        }
+      } catch (err) {
+        statusEl.textContent = 'Error de conexión al subir imagen.';
+        statusEl.style.color = 'var(--hot)';
+      } finally {
+        e.target.value = '';
+      }
+    });
+
+    // Abrir modal de edición
+    window.openEditEmpresa = async function(id) {
+      try {
+        if (!adminUsuariosList || adminUsuariosList.length === 0) {
+          const uRes = await fetch('api/admin/usuarios/list.php');
+          const uJson = await uRes.json();
+          if (uJson.success && uJson.data) {
+            adminUsuariosList = uJson.data.usuarios || [];
+          }
+        }
+
+        const selectUser = $('#edit-emp-usuario');
+        if (selectUser && adminUsuariosList.length > 0) {
+          selectUser.innerHTML = adminUsuariosList.map(u => 
+            `<option value="${u.id}">${escapeHtml(u.nombre)} (${escapeHtml(u.email)}) - ${u.rol}</option>`
+          ).join('');
+        }
+
+        const res = await fetch(`api/admin/empresas/get.php?id=${id}`);
+        const json = await res.json();
+        if (!json.success || !json.data || !json.data.empresa) {
+          toast(json.message || 'No se pudo cargar la información del comercio.');
+          return;
+        }
+
+        const emp = json.data.empresa;
+        $('#edit-emp-id').value = emp.id;
+        $('#edit-emp-nombre').value = emp.nombre || '';
+        $('#edit-emp-cat').value = emp.categoria_id || 1;
+        $('#edit-emp-rif').value = emp.rif || '';
+        if (selectUser) selectUser.value = emp.usuario_id || 1;
+        $('#edit-emp-estado').value = emp.estado || 'aprobado';
+        $('#edit-emp-tel').value = emp.telefono || '';
+        $('#edit-emp-correo').value = emp.correo_contacto || '';
+        $('#edit-emp-zona').value = emp.zona || '';
+        $('#edit-emp-dir').value = emp.direccion || '';
+        $('#edit-emp-desc').value = emp.descripcion || '';
+        $('#edit-emp-logo-url').value = emp.logo_url || '';
+
+        const redes = emp.redes_sociales || {};
+        $('#edit-emp-instagram').value = redes.instagram || '';
+        $('#edit-emp-whatsapp').value = redes.whatsapp || '';
+        $('#edit-emp-tiktok').value = redes.tiktok || '';
+        $('#edit-emp-web').value = redes.web || '';
+
+        const preview = $('#edit-logo-preview');
+        if (emp.logo_url) {
+          preview.innerHTML = `<img src="${emp.logo_url}" alt="${escapeHtml(emp.nombre)}" style="width:100%; height:100%; object-fit:cover;">`;
+        } else {
+          preview.innerHTML = `<svg class="ico" style="color:var(--muted);"><use href="#i-tienda"></use></svg>`;
+        }
+        $('#edit-upload-status').textContent = 'JPG, PNG o WebP hasta 5MB';
+        $('#edit-upload-status').style.color = 'var(--muted)';
+
+        const activePays = Array.isArray(emp.metodos_pago) ? emp.metodos_pago : [];
+        $$('#edit-emp-pays .pay-toggle').forEach(p => {
+          p.classList.toggle('on', activePays.includes(p.dataset.p));
+        });
+
+        $('#edit-emp-error').style.display = 'none';
+        $('#modal-edit-empresa').classList.add('on');
+      } catch (err) {
+        console.error('Error al abrir modal de edición:', err);
+        toast('Error al consultar datos del comercio.');
+      }
+    };
+
+    // Cerrar modal de edición
+    const closeModalEditEmpresa = () => $('#modal-edit-empresa').classList.remove('on');
+    $('#btn-close-edit-empresa')?.addEventListener('click', closeModalEditEmpresa);
+    $('#btn-cancel-edit-empresa')?.addEventListener('click', closeModalEditEmpresa);
+    $('#modal-edit-empresa')?.addEventListener('click', (e) => {
+      if (e.target.id === 'modal-edit-empresa') closeModalEditEmpresa();
+    });
+
+    // Guardar edición de comercio
+    $('#form-edit-empresa')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = parseInt($('#edit-emp-id').value);
+      const nombre = $('#edit-emp-nombre').value.trim();
+      const categoria_id = parseInt($('#edit-emp-cat').value);
+      const rif = $('#edit-emp-rif').value.trim();
+      const usuario_id = parseInt($('#edit-emp-usuario').value);
+      const estado = $('#edit-emp-estado').value;
+      const telefono = $('#edit-emp-tel').value.trim();
+      const correo_contacto = $('#edit-emp-correo').value.trim();
+      const zona = $('#edit-emp-zona').value.trim();
+      const direccion = $('#edit-emp-dir').value.trim();
+      const descripcion = $('#edit-emp-desc').value.trim();
+      const logo_url = $('#edit-emp-logo-url').value || null;
+      const metodos_pago = $$('#edit-emp-pays .pay-toggle.on').map(p => p.dataset.p);
+      const redes_sociales = {
+        instagram: $('#edit-emp-instagram').value.trim(),
+        whatsapp: $('#edit-emp-whatsapp').value.trim(),
+        tiktok: $('#edit-emp-tiktok').value.trim(),
+        web: $('#edit-emp-web').value.trim()
+      };
+
+      const errMsg = $('#edit-emp-error');
+      const submitBtn = $('#btn-submit-edit-empresa');
+
+      if (!nombre) {
+        errMsg.textContent = 'El nombre del comercio es obligatorio.';
+        errMsg.style.display = 'block';
+        return;
+      }
+
+      errMsg.style.display = 'none';
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Guardando…';
+
+      try {
+        const res = await fetch('api/admin/empresas/update.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id,
+            nombre,
+            categoria_id,
+            rif,
+            usuario_id,
+            estado,
+            telefono,
+            correo_contacto,
+            zona,
+            direccion,
+            descripcion,
+            logo_url,
+            metodos_pago,
+            redes_sociales
+          })
+        });
+        const json = await res.json();
+        if (json.success) {
+          toast('¡Comercio actualizado correctamente!');
+          closeModalEditEmpresa();
+          loadAdminData();
+          loadBusinessesFromAPI();
+        } else {
+          errMsg.textContent = json.message || 'Error al actualizar el comercio.';
+          errMsg.style.display = 'block';
+        }
+      } catch (err) {
+        errMsg.textContent = 'Error de conexión al actualizar comercio.';
+        errMsg.style.display = 'block';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Guardar Cambios';
+      }
+    });
+
+    // Eliminar Comercio (Admin)
+    window.openDeleteEmpresa = function(id, name) {
+      $('#del-emp-id').value = id;
+      $('#del-emp-nombre').textContent = name;
+      $('#modal-delete-empresa').classList.add('on');
+    };
+
+    const closeModalDeleteEmpresa = () => $('#modal-delete-empresa').classList.remove('on');
+    $('#btn-cancel-del-empresa')?.addEventListener('click', closeModalDeleteEmpresa);
+    $('#modal-delete-empresa')?.addEventListener('click', (e) => {
+      if (e.target.id === 'modal-delete-empresa') closeModalDeleteEmpresa();
+    });
+
+    $('#btn-confirm-del-empresa')?.addEventListener('click', async () => {
+      const id = parseInt($('#del-emp-id').value);
+      if (!id) return;
+
+      const btn = $('#btn-confirm-del-empresa');
+      btn.disabled = true;
+      btn.textContent = 'Eliminando…';
+
+      try {
+        const res = await fetch('api/admin/empresas/delete.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id })
+        });
+        const json = await res.json();
+        if (json.success) {
+          toast('Comercio eliminado permanentemente.');
+          closeModalDeleteEmpresa();
+          loadAdminData();
+          loadBusinessesFromAPI();
+        } else {
+          toast(json.message || 'Error al eliminar el comercio.');
+        }
+      } catch (err) {
+        toast('Error de conexión al eliminar.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Sí, eliminar comercio';
+      }
+    });
+
+    // 7. Modal de Creación de Usuarios (Admin)
+    $('#btn-open-create-user')?.addEventListener('click', () => {
+      $('#user-create-error').style.display = 'none';
+      $('#form-create-user').reset();
+      $('#modal-user').classList.add('on');
+    });
+
+    const closeModalUser = () => $('#modal-user').classList.remove('on');
+    $('#btn-close-modal-user')?.addEventListener('click', closeModalUser);
+    $('#btn-cancel-create-user')?.addEventListener('click', closeModalUser);
+
+    $('#form-create-user')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const nombre = $('#u-nom').value.trim();
+      const email = $('#u-mail').value.trim();
+      const telefono = $('#u-tel').value.trim();
+      const rol = $('#u-rol').value;
+      const password = $('#u-pass').value;
+      const errMsg = $('#user-create-error');
+      const submitBtn = $('#btn-submit-create-user');
+
+      errMsg.style.display = 'none';
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Guardando…';
+
+      try {
+        const res = await fetch('api/admin/usuarios/create.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nombre, email, telefono, rol, password })
+        });
+        const json = await res.json();
+        if (json.success) {
+          toast('Usuario creado exitosamente.');
+          closeModalUser();
+          loadAdminUsersCount();
+        } else {
+          errMsg.textContent = json.message || 'Error al crear usuario.';
+          errMsg.style.display = 'block';
+        }
+      } catch (err) {
+        errMsg.textContent = 'Error de conexión con el servidor.';
+        errMsg.style.display = 'block';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Guardar Usuario';
+      }
+    });
+
+    // 8. Registro de Comercio conectando al Backend MySQL
+    $('#send-biz')?.addEventListener('click', async () => {
+      const name = $('#n-name').value.trim();
+      if (!name) {
+        toast('Indica el nombre del comercio en el paso 1.');
+        return;
+      }
+
+      const catSelect = $('#n-cat').value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const catIdMap = {
+        'restaurante': 1, 'cafe': 2, 'panaderia': 3, 'supermercado': 4,
+        'hotel': 5, 'tienda': 6, 'entretenimiento': 7, 'servicios': 8, 'tecnologia': 9
+      };
+      const catId = catIdMap[catSelect] || 1;
+      const pays = $$('#n-pays .pay-toggle.on').map(p => p.dataset.p);
+
+      const payload = {
+        usuario_id: currentAuthUser ? currentAuthUser.id : 1,
+        nombre: name,
+        rif: $('#n-rif').value.trim(),
+        categoria_id: catId,
+        descripcion: $('#n-desc').value.trim(),
+        telefono: $('#n-tel').value.trim(),
+        correo_contacto: $('#n-mail').value.trim(),
+        direccion: $('#n-dir').value.trim() || 'Dirección en Caracas',
+        zona: $('#n-zona').value || 'Chacao',
+        latitud: (typeof pickMarker !== 'undefined' && pickMarker) ? pickMarker.getLatLng().lat : 10.4975,
+        longitud: (typeof pickMarker !== 'undefined' && pickMarker) ? pickMarker.getLatLng().lng : -66.8542,
+        logo_url: uploadedLogoUrl || null,
+        redes_sociales: {
+          instagram: $('#n-insta')?.value.trim() || '',
+          whatsapp: $('#n-ws')?.value.trim() || '',
+          tiktok: $('#n-tiktok')?.value.trim() || '',
+          web: $('#n-web')?.value.trim() || ''
+        },
+        estado: (currentAuthUser && currentAuthUser.rol === 'admin') ? 'aprobado' : 'pendiente',
+        metodos_pago: pays
+      };
+
+      try {
+        const res = await fetch('api/admin/empresas/create.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const json = await res.json();
+        if (json.success) {
+          toast('¡Comercio registrado con éxito!');
+          await loadBusinessesFromAPI();
+          go('admin');
+          if (currentAuthUser && currentAuthUser.rol === 'admin') loadAdminData();
+        } else {
+          toast(json.message || 'Error al registrar el comercio');
+        }
+      } catch (err) {
+        toast('Error de conexión al registrar el comercio.');
+      }
+    });
+
+    // 9. Carga de Comercios Aprobados desde MySQL para Mapa y Directorio
+    async function loadBusinessesFromAPI() {
+      try {
+        const res = await fetch('api/empresas/list.php');
+        const json = await res.json();
+        if (json.success && json.data && json.data.comercios && json.data.comercios.length > 0) {
+          BIZ.length = 0;
+          json.data.comercios.forEach(c => BIZ.push(c));
+          $('#home-cards').innerHTML = BIZ.slice(0, 6).map(cardHTML).join('');
+          $('#all-cards').innerHTML = BIZ.map(cardHTML).join('');
+          $('#all-count').textContent = BIZ.length + ' comercios';
+          $('#b-count').textContent = BIZ.length;
+          refresh();
+        }
+      } catch (err) {
+        console.warn('Cargando con comercios estáticos de respaldo:', err);
+      }
+    }
+
+    /* ===================== arranque ===================== */
+    initMaps();
+    checkAuthSession();
+    loadBusinessesFromAPI();
+    go(location.hash.slice(1) || 'inicio');

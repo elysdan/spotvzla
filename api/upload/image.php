@@ -10,8 +10,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonResponse(false, 'Método no permitido. Use POST.', null, 405);
 }
 
-if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
-    $errCode = $_FILES['image']['error'] ?? UPLOAD_ERR_NO_FILE;
+$file = $_FILES['image'] ?? $_FILES['imagen'] ?? null;
+
+if (!$file || !isset($file['error']) || $file['error'] !== UPLOAD_ERR_OK) {
+    $errCode = $file['error'] ?? UPLOAD_ERR_NO_FILE;
     $msg = match ($errCode) {
         UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => 'El archivo supera el tamaño máximo permitido por el servidor.',
         UPLOAD_ERR_PARTIAL => 'La imagen se subió parcialmente.',
@@ -20,8 +22,6 @@ if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
     };
     jsonResponse(false, $msg, null, 400);
 }
-
-$file = $_FILES['image'];
 $maxBytes = 5 * 1024 * 1024; // 5 MB
 
 if ($file['size'] > $maxBytes) {

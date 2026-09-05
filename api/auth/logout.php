@@ -1,11 +1,6 @@
 <?php
 /**
- * Endpoint POST/GET: Cerrar Sesión (Logout)
+ * Endpoint POST: Cierre de Sesión
  */
-
-require_once __DIR__ . '/../../includes/helpers.php';
-require_once __DIR__ . '/../../includes/auth.php';
-
-Auth::logout();
-
-jsonResponse(true, 'Sesión cerrada correctamente.');
+require_once __DIR__ . '/../../controllers/AuthController.php';
+AuthController::logout();
